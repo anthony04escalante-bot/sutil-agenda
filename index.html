@@ -869,7 +869,7 @@ function incCal(){
 }
 function vIngresos(){
  const b=bounds(),inR=db.appts.filter(a=>a.date>=b.a&&a.date<=b.b),done=inR.filter(a=>a.status==='completed').sort((x,y)=>y.date.localeCompare(x.date)||y.start-x.start);
- const tot=done.reduce((t,a)=>t+(+a.amount||0),0),sinCobro=done.filter(a=>!(+a.amount)).length,lost=inR.filter(a=>a.status==='cancelled'||a.status==='noshow').length,pend=inR.filter(a=>a.status==='confirmed').length;
+ const tot=done.reduce((t,a)=>t+(+a.amount||0),0),sinCobro=done.filter(a=>!(+a.amount)).length,lost=inR.filter(a=>a.status==='cancelled'||a.status==='noshow').length,pend=inR.filter(a=>a.status==='confirmed').length,porCobrar=inR.filter(a=>a.status==='confirmed').reduce((t,a)=>t+(+a.price||0),0);
  let chart='';
  if(ui.range!=='dia'){
   const ds=[];for(let d=parse(b.a);ymd(d)<=b.b;d=addDays(d,1))ds.push(ymd(d));
@@ -885,7 +885,7 @@ function vIngresos(){
  return `<header class="top"><div class="sal">${esc(db.settings.name)}</div><div class="row"><h1 class="sp">Ingresos<small>${b.label}</small></h1>
   <button type="button" class="iconbtn" data-act="rangeGo" data-n="-1" aria-label="Periodo anterior">${ic('l')}</button><button type="button" class="iconbtn" data-act="rangeGo" data-n="1" aria-label="Periodo siguiente">${ic('r')}</button></div></header>
   ${demoBanner()}<div class="seg">${[['dia','Día'],['semana','Semana'],['mes','Mes']].map(([k,l])=>`<button type="button" data-act="range" data-k="${k}" aria-pressed="${ui.range===k}">${l}</button>`).join('')}</div>
-  <div class="big num"><span>Total cobrado</span><b>${money(tot)}</b><small>${done.length} cita${done.length===1?'':'s'} atendida${done.length===1?'':'s'}${pend?` · ${pend} por atender`:''}${lost?` · ${lost} cancelada${lost===1?'':'s'} o sin asistir`:''}</small></div>
+  <div class="big num"><span>Total cobrado</span><b>${money(tot)}</b><small>${done.length} cita${done.length===1?'':'s'} atendida${done.length===1?'':'s'}${pend?` · ${pend} por atender${porCobrar?` (${money(porCobrar)} por cobrar)`:''}`:''}${lost?` · ${lost} cancelada${lost===1?'':'s'} o sin asistir`:''}</small></div>
   ${incCal()}${sinCobro?`<p class="note" style="margin:0 0 4px">${sinCobro} cita${sinCobro===1?'':'s'} sin cobro anotado. Tócala${sinCobro===1?'':'s'} en la lista para agregarlo.</p>`:''}${chart}${bySvc}${list}`;
 }
 function vSalon(){
@@ -918,7 +918,7 @@ function vSalon(){
   const s=db.settings;
   body=`<div class="lockup" role="img" aria-label="Sutil, estudio by Clara"></div><div class="field"><label for="sn">Nombre del salón</label><input class="in" id="sn" value="${esc(s.name)}" data-in="sname"></div>
    <div class="sub">Copia de seguridad</div><p class="note" style="margin:0 0 10px">${syncLabel()}</p>
-    <p class="note" style="margin:0 0 8px">Versión de la app: v11</p>${sync.mode==='cloud'?`<div class="acts" style="margin-bottom:14px"><button type="button" class="btn tonal block" data-act="syncNow">Revisar ahora</button><button type="button" class="btn ghost block" data-act="pinAsk">Cambiar mi clave</button><button type="button" class="btn ghost block" data-act="logout">Cerrar sesión en este teléfono</button></div>`:''}
+    <p class="note" style="margin:0 0 8px">Versión de la app: v12</p>${sync.mode==='cloud'?`<div class="acts" style="margin-bottom:14px"><button type="button" class="btn tonal block" data-act="syncNow">Revisar ahora</button><button type="button" class="btn ghost block" data-act="pinAsk">Cambiar mi clave</button><button type="button" class="btn ghost block" data-act="logout">Cerrar sesión en este teléfono</button></div>`:''}
     <div class="sub">Copia extra</div><p class="note" style="margin:0 0 10px">Además, puedes guardar una copia en una nota.</p>
    <div class="acts"><button type="button" class="btn tonal block" data-act="backup">Copiar copia de seguridad</button><button type="button" class="btn ghost block" data-act="restore">Restaurar copia</button>
    <button type="button" class="btn danger block" data-act="wipeAsk">Borrar todos los datos</button></div>`;
@@ -957,7 +957,7 @@ const head=(t,sub)=>`<div class="grab"></div><div class="sh-head"><div><h2 id="s
 let wiz=null;
 function defaultDate(){let d=ui.date<todayStr()?todayStr():ui.date;for(let i=0;i<8&&!isOpenDay(d);i++)d=ymd(addDays(parse(d),1));return d}
 function wizStart(o={}){
- wiz=Object.assign({step:1,serviceId:null,staffId:'owner',date:defaultDate(),start:null,clientId:null,mode:'search',newName:'',newPhone:'',notes:'',editId:null,q:''},o);
+ wiz=Object.assign({step:1,serviceId:null,staffId:'owner',date:defaultDate(),start:null,clientId:null,mode:'search',newName:'',newPhone:'',notes:'',editId:null,q:'',price:''},o);
  renderWiz(true);
 }
 const WT=['¿Para quién es la cita?','¿Qué servicio?','¿Cuándo?'];
@@ -984,7 +984,8 @@ function renderWiz(reset){
    ${slots.length?`<div class="slots num">${slots.map(s=>`<button type="button" class="slot ${w.start===s.start?'on':''}" data-act="wSlot" data-s="${s.start}" ${s.free?'':'disabled'}>${t12(s.start)}</button>`).join('')}</div>`
    :`<div class="empty"><h3>${isOff(w.date)?'Día libre':isOpenDay(w.date)?'Sin horarios':'No trabajas este día'}</h3><p>Elige otro día.</p></div>`}
    ${w.start!=null?`<p class="note" style="margin-top:12px">Termina a las ${t12(w.start+svc.dur)}.</p>`:''}
-   <div class="field" style="margin-top:14px"><label for="wn">Nota (opcional)</label><textarea class="in" id="wn" data-in="wNotes" placeholder="Alergias, preferencias" style="min-height:64px">${esc(w.notes)}</textarea></div><p class="err" id="werr" role="alert"></p>`;
+   <div class="field" style="margin-top:14px"><label for="wp">Precio del servicio (opcional)</label><input class="in" id="wp" inputmode="decimal" placeholder="Ej. 25.00" value="${esc(w.price)}" data-in="wPrice" autocomplete="off"></div>
+   <div class="field"><label for="wn">Nota (opcional)</label><textarea class="in" id="wn" data-in="wNotes" placeholder="Alergias, preferencias" style="min-height:64px">${esc(w.notes)}</textarea></div><p class="err" id="werr" role="alert"></p>`;
   foot=`${w.editId?'':`<button type="button" class="btn ghost" data-act="wBack">Atrás</button>`}<button type="button" class="btn" data-act="wOk" ${w.start==null?'disabled':''}>${w.editId?'Guardar cambios':'Programar cita'}</button>`;
  }
  openSheet(`${head(w.editId?'Reprogramar cita':WT[w.step-1],w.editId?WT[w.step-1]:null)}<div class="prog">${[1,2,3].map(i=>`<i class="${i<=w.step?'on':''}"></i>`).join('')}</div><div class="sh-body">${body}</div>${foot?`<div class="sh-foot">${foot}</div>`:''}`,!reset);
@@ -1001,14 +1002,14 @@ function schedSheet(id){
  const a=db.appts.find(x=>x.id===id);if(!a)return;
  const s=svcById(a.serviceId),c=clientById(a.clientId),d=parse(a.date),wa=waLink(c.phone,confirmMsg(a));
  openSheet(`${head('Cita programada')}<div class="sh-body"><div class="okmark">${ic('check',30)}</div>
-  <dl class="kv"><dt>Cliente</dt><dd>${esc(c.name)}</dd><dt>Servicio</dt><dd>${esc(s.name)}</dd><dt>Día</dt><dd>${wdLong(d)} ${d.getDate()} de ${monthLong(d).toLowerCase()}</dd><dt>Hora</dt><dd>${t12(a.start)} a ${t12(a.start+a.dur)}</dd></dl>
+  <dl class="kv"><dt>Cliente</dt><dd>${esc(c.name)}</dd><dt>Servicio</dt><dd>${esc(s.name)}</dd><dt>Día</dt><dd>${wdLong(d)} ${d.getDate()} de ${monthLong(d).toLowerCase()}</dd><dt>Hora</dt><dd>${t12(a.start)} a ${t12(a.start+a.dur)}</dd>${+a.price?`<dt>Precio</dt><dd>${money(a.price)}</dd>`:''}</dl>
   ${wa?`<p class="note" style="margin:0 0 8px">Avísale a ${esc(c.name.split(' ')[0])} por WhatsApp:</p><div class="bubble">${bub(confirmMsg(a))}</div>`:`<p class="note">${esc(c.name.split(' ')[0])} no tiene WhatsApp guardado. Agrégalo en Clientes para enviarle el mensaje.</p>`}</div>
   <div class="sh-foot">${wa?`<a class="btn wa" href="${wa}" target="_blank" rel="noopener" data-wa="confirm" data-id="${id}">${ic('chat',20)}Enviar WhatsApp</a>`:''}<button type="button" class="btn ghost" data-act="closeSheet">Listo</button></div>`);
 }
 function cobroSheet(id){
  const a=db.appts.find(x=>x.id===id);if(!a)return;
  const s=svcById(a.serviceId),c=clientById(a.clientId),first=a.status!=='completed';
- openSheet(`${head(first?'Cita atendida':'Cobro',`${esc(c.name)} · ${esc(s.name)}`)}<div class="sh-body"><form id="f" onsubmit="return false"><div class="field"><label for="am">¿Cuánto cobraste? (opcional)</label><input class="in big-in" id="am" name="amount" inputmode="decimal" placeholder="0.00" value="${+a.amount?(+a.amount).toFixed(2):''}" autocomplete="off"></div><p class="err" id="ferr" role="alert"></p></form></div>
+ openSheet(`${head(first?'Cita atendida':'Cobro',`${esc(c.name)} · ${esc(s.name)}`)}<div class="sh-body"><form id="f" onsubmit="return false"><div class="field"><label for="am">¿Cuánto cobraste? (opcional)</label><input class="in big-in" id="am" name="amount" inputmode="decimal" placeholder="0.00" value="${+a.amount?(+a.amount).toFixed(2):(+a.price?(+a.price).toFixed(2):'')}" autocomplete="off"></div><p class="err" id="ferr" role="alert"></p></form></div>
   <div class="sh-foot"><button type="button" class="btn" data-act="cobroSave" data-id="${id}">${first?'Marcar como atendida':'Guardar cobro'}</button></div>`);
  setTimeout(()=>{const i=$('#am');if(i)i.focus()},60);
 }
@@ -1030,7 +1031,7 @@ function apptSheet(id,confirm){
   ${upcoming?`<button type="button" class="btn tonal block" data-act="sorry" data-id="${id}">Yo no puedo atender · avisar</button>`:''}</div>`;
  else if(a.status==='completed')acts=`<div class="acts"><button type="button" class="btn tonal block" data-act="cobro" data-id="${id}">${+a.amount?'Cobro: '+money(a.amount)+' · Editar':'Agregar cobro'}</button><button type="button" class="btn ghost block" data-act="reopen" data-id="${id}">Volver a “Por atender”</button>${delBtn}</div>`;
  else acts=`<div class="acts"><button type="button" class="btn ghost block" data-act="reopen" data-id="${id}">Volver a “Por atender”</button>${upcoming?reuseBtn:''}${delBtn}</div>`;
- openSheet(`${head(esc(s.name),`<span class="pill ${a.status}">${STATUS[a.status]}</span>${a.status==='confirmed'&&a.asked?` <span class="note">Mensaje enviado el ${dmShort(parse(a.asked))}</span>`:''}`)}<div class="sh-body"><dl class="kv"><dt>Cliente</dt><dd>${esc(c.name)}${c.phone?`<br><span class="note">${esc(c.phone)}</span>`:''}</dd><dt>Cuándo</dt><dd>${wdShort(d)} ${dmShort(d)}<br>${t12(a.start)} a ${t12(a.start+a.dur)}</dd>${a.notes?`<dt>Notas</dt><dd>${esc(a.notes)}</dd>`:''}</dl>${acts}</div>`);
+ openSheet(`${head(esc(s.name),`<span class="pill ${a.status}">${STATUS[a.status]}</span>${a.status==='confirmed'&&a.asked?` <span class="note">Mensaje enviado el ${dmShort(parse(a.asked))}</span>`:''}`)}<div class="sh-body"><dl class="kv"><dt>Cliente</dt><dd>${esc(c.name)}${c.phone?`<br><span class="note">${esc(c.phone)}</span>`:''}</dd><dt>Cuándo</dt><dd>${wdShort(d)} ${dmShort(d)}<br>${t12(a.start)} a ${t12(a.start+a.dur)}</dd>${+a.price&&a.status==='confirmed'?`<dt>Precio</dt><dd>${money(a.price)}</dd>`:''}${a.notes?`<dt>Notas</dt><dd>${esc(a.notes)}</dd>`:''}</dl>${acts}</div>`);
 }
 
 /* cambiar el cliente de una cita */
@@ -1124,7 +1125,7 @@ const A={
   a.clientId=cid;delete a.asked;save();render();apptSheet(a.id);toast('Cliente cambiado')},
  noshow:d=>{const a=db.appts.find(x=>x.id===d.id);if(a)a.status='noshow';closeSheet();after('Marcada como no asistió')},
  reopen:d=>{const a=db.appts.find(x=>x.id===d.id);if(!a)return;if(!staffFree(a.staffId,a.date,a.start,a.dur,a.id)){apptSheet(d.id);toast('Ese horario ya fue ocupado');return}a.status='confirmed';closeSheet();after('Cita reactivada')},
- resched:d=>{const a=db.appts.find(x=>x.id===d.id),past=a.date<todayStr();wizStart({step:3,editId:a.id,serviceId:a.serviceId,staffId:a.staffId,date:past?defaultDate():a.date,start:past?null:a.start,clientId:a.clientId,notes:a.notes||''})},
+ resched:d=>{const a=db.appts.find(x=>x.id===d.id),past=a.date<todayStr();wizStart({step:3,editId:a.id,serviceId:a.serviceId,staffId:a.staffId,date:past?defaultDate():a.date,start:past?null:a.start,clientId:a.clientId,notes:a.notes||'',price:+a.price?String(a.price):''})},
  /* asistente */
  wSvc:d=>{wiz.serviceId=d.id;wiz.staffId='owner';wizStep(3)},
  wDay:d=>{wiz.date=d.d;wiz.start=null;renderWiz()},
@@ -1151,10 +1152,12 @@ const A={
    if(w.newPhone.trim()&&!waOk(w.newPhone)){err('Escribe el número completo de WhatsApp.');return}
    const dg=waDigits(w.newPhone),ex=dg?db.clients.find(c=>waDigits(c.phone)===dg):null;
    if(ex)cid=ex.id;else{cid=uid();fresh={id:cid,name,phone:w.newPhone.trim(),notes:''}}}
+  const pr=String(w.price||'').trim().replace(',','.'),pv=pr===''?0:Number(pr);
+  if(!isFinite(pv)||pv<0){err('Escribe un precio válido, por ejemplo 25 o 25.50.');return}
   const slot=slotsFor(w.date,svc,w.staffId,w.editId).find(s=>s.start===w.start&&s.free);
   if(!slot){err('Ese horario ya no está libre. Elige otro.');wizStep(3);return}
   if(fresh)db.clients.push(fresh);
-  const rec={clientId:cid,serviceId:svc.id,staffId:slot.staffId,date:w.date,start:w.start,dur:svc.dur,notes:w.notes.trim()};
+  const rec={clientId:cid,serviceId:svc.id,staffId:slot.staffId,date:w.date,start:w.start,dur:svc.dur,notes:w.notes.trim(),price:pv||undefined};
   if(w.editId)Object.assign(db.appts.find(a=>a.id===w.editId),rec);else db.appts.push(Object.assign({id:uid(),status:'confirmed'},rec));
   const dt=w.date,aid=w.editId||db.appts[db.appts.length-1].id;ui.date=dt;ui.tab='agenda';save();render();scrollTo(0,0);schedSheet(aid)},
  /* clientes */
@@ -1258,7 +1261,7 @@ const I={
  cq:el=>{if(ui.q===el.value)return;ui.q=el.value;const l=$('#clist');if(l)l.innerHTML=clientRows()},
  wDate:el=>{if(el.value&&el.value>=todayStr()){wiz.date=el.value;wiz.start=null;renderWiz()}},
  wQ:el=>{if(wiz.q===el.value)return;wiz.q=el.value;const r=$('#wres');if(r)r.innerHTML=wizResults()},
- wName:el=>{wiz.newName=el.value},wPhone:el=>{wiz.newPhone=el.value},wNotes:el=>{wiz.notes=el.value},
+ wName:el=>{wiz.newName=el.value},wPhone:el=>{wiz.newPhone=el.value},wNotes:el=>{wiz.notes=el.value},wPrice:el=>{wiz.price=el.value},
  blk:(el,ev)=>{if(ev.type!=='change')return;const i=+el.dataset.i,j=+el.dataset.j,b=db.settings.blocks.slice();while(b.length<2)b.push(['','']);
   b[i]=b[i].slice();b[i][j]=el.value;db.settings.blocks=b.filter(x=>x[0]||x[1]);save();render()},
  step:(el,ev)=>{if(ev.type==='change'){db.settings.step=+el.value;save()}},
