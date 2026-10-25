@@ -923,10 +923,9 @@ function vSalon(){
   const s=db.settings;
   body=`<div class="lockup" role="img" aria-label="Sutil, estudio by Clara"></div><div class="field"><label for="sn">Nombre del salón</label><input class="in" id="sn" value="${esc(s.name)}" data-in="sname"></div>
    <div class="sub">Copia de seguridad</div><p class="note" style="margin:0 0 10px">${syncLabel()}</p>
-    <p class="note" style="margin:0 0 8px">Versión de la app: v17</p>${sync.mode==='cloud'?`<div class="acts" style="margin-bottom:14px"><button type="button" class="btn tonal block" data-act="syncNow">Revisar ahora</button><button type="button" class="btn ghost block" data-act="pinAsk">Cambiar mi clave</button><button type="button" class="btn ghost block" data-act="logout">Cerrar sesión en este teléfono</button></div>`:''}
+    <p class="note" style="margin:0 0 8px">Versión de la app: v18</p>${sync.mode==='cloud'?`<div class="acts" style="margin-bottom:14px"><button type="button" class="btn tonal block" data-act="syncNow">Revisar ahora</button><button type="button" class="btn ghost block" data-act="pinAsk">Cambiar mi clave</button><button type="button" class="btn ghost block" data-act="logout">Cerrar sesión en este teléfono</button></div>`:''}
     <div class="sub">Copia extra</div><p class="note" style="margin:0 0 10px">Además, puedes guardar una copia en una nota.</p>
-   <div class="acts"><button type="button" class="btn tonal block" data-act="backup">Copiar copia de seguridad</button><button type="button" class="btn ghost block" data-act="restore">Restaurar copia</button>
-   <button type="button" class="btn danger block" data-act="wipeAsk">Borrar todos los datos</button></div>`;
+   <div class="acts"><button type="button" class="btn tonal block" data-act="backup">Copiar copia de seguridad</button><button type="button" class="btn ghost block" data-act="restore">Restaurar copia</button></div>`;
  }
  return `<header class="top"><div class="sal">${esc(db.settings.name)}</div><h1>Ajustes</h1></header>${demoBanner()}
   <div class="seg">${[['servicios','Servicios'],['horario','Horario'],['whatsapp','WhatsApp'],['datos','Salón']].map(([k,l])=>`<button type="button" data-act="salonTab" data-k="${k}" aria-pressed="${T===k}">${l}</button>`).join('')}</div>${body}`;
