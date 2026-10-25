@@ -591,6 +591,14 @@ input[type=time].in,input[type=date].in{font-size:17px;padding:10px 12px}
 .sh-foot .btn.ghost{flex:0 0 auto;padding:0 24px}
 .sh-foot .btn:not(.ghost){flex:1 1 0;min-width:0}
 .fab{height:60px}
+
+/* hojas v5: panel propio (sin <dialog>) para celular */
+#shwrap{position:fixed;left:0;right:0;top:0;height:100%;z-index:50;display:flex;align-items:flex-end;justify-content:center;background:var(--veil)}
+#shwrap[hidden]{display:none!important}
+body.sh-open{overflow:hidden}
+div#sheet{display:flex;flex-direction:column;width:100%;max-width:600px;max-height:calc(100% - 16px);padding:0;background:var(--surface);color:var(--ink);overflow:hidden;border-radius:32px 32px 0 0;animation:up .22s ease-out}
+.toast{z-index:70!important}
+.ical{gap:4px}.ical button{aspect-ratio:auto;height:50px;border-radius:16px;padding:0;min-width:0;overflow:hidden;font:800 18px var(--f-body);gap:0}.ical button small{font:800 11px var(--f-body);min-height:13px;line-height:13px}.ical i{aspect-ratio:auto;height:0}
 </style>
 
 </head>
@@ -598,7 +606,7 @@ input[type=time].in,input[type=date].in{font-size:17px;padding:10px 12px}
 <div id="app"></div>
 <div class="fabwrap" id="fabwrap" hidden><div><button class="fab alt" type="button" data-act="maint" id="fabm" aria-label="Mantenimiento"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg><span>Mantenimiento</span><i class="bdg" id="fabn" hidden></i></button><button class="fab" type="button" data-act="newAppt"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nueva cita</button></div></div>
 <div class="tabbar"><nav id="tabs" aria-label="Secciones"></nav></div>
-<dialog id="sheet" aria-labelledby="shtitle"></dialog>
+<div id="shwrap" hidden><div id="sheet" role="dialog" aria-modal="true" aria-labelledby="shtitle"></div></div>
 <div id="toast" class="toast" role="status" hidden></div>
 <div id="lock" hidden></div>
 
@@ -839,6 +847,16 @@ function groupBars(items,keyFn,nameFn){
  const rows=Object.values(g).sort((x,y)=>y.n-x.n),mx=Math.max(1,...rows.map(r=>r.n));
  return `<div class="bars">${rows.map(r=>`<div><div class="l"><span>${esc(r.name)}</span><span class="num">${r.n}</span></div><div class="tr"><i style="width:${Math.max(4,r.n/mx*100)}%"></i></div></div>`).join('')}</div>`;
 }
+function incCal(){
+ const cm=(ui.icm||ui.anchor.slice(0,7)).split('-'),y=+cm[0],m=+cm[1]-1,first=new Date(y,m,1),n=new Date(y,m+1,0).getDate(),lead=(first.getDay()+6)%7;
+ const tot={};db.appts.forEach(a=>{if(a.status==='completed'&&a.date.slice(0,7)===cm[0]+'-'+cm[1])tot[a.date]=(tot[a.date]||0)+(+a.amount||0)});
+ const sum=Object.values(tot).reduce((t,v)=>t+v,0),cmp=v=>v>=1000?'$'+(v/1000).toFixed(v>=10000?0:1).replace(/\.0$/,'')+'k':'$'+Math.round(v);
+ let cells='';for(let i=0;i<lead;i++)cells+='<i></i>';
+ for(let d=1;d<=n;d++){const k=ymd(new Date(y,m,d)),v=tot[k]||0;
+  cells+=`<button type="button" data-act="calDay" data-d="${k}" class="${ui.range==='dia'&&k===ui.anchor?'sel':''} ${k===todayStr()?'today':''}" aria-label="${d} de ${monthLong(first).toLowerCase()}${v?', '+money(v):''}">${d}<small class="num">${v?cmp(v):''}</small></button>`}
+ return `<div style="padding:14px 10px;margin-bottom:14px;background:var(--surface);border-radius:28px;box-shadow:var(--sh)"><div class="row" style="justify-content:space-between;margin-bottom:8px"><button type="button" class="iconbtn" data-act="calGo" data-n="-1" aria-label="Mes anterior">${ic('l')}</button><div style="text-align:center;min-width:0"><b style="font:italic 700 22px var(--f-display)">${monthLong(first)} ${y}</b><div class="note num" style="margin:0">Cobrado en el mes: ${money(sum)}</div></div><button type="button" class="iconbtn" data-act="calGo" data-n="1" aria-label="Mes siguiente">${ic('r')}</button></div>
+  <div class="cal ical">${'LMMJVSD'.split('').map(x=>`<div class="wd">${x}</div>`).join('')}${cells}</div><p class="note" style="margin:10px 0 0;text-align:center">Toca un día para ver lo que cobraste.</p></div>`;
+}
 function vIngresos(){
  const b=bounds(),inR=db.appts.filter(a=>a.date>=b.a&&a.date<=b.b),done=inR.filter(a=>a.status==='completed').sort((x,y)=>y.date.localeCompare(x.date)||y.start-x.start);
  const tot=done.reduce((t,a)=>t+(+a.amount||0),0),sinCobro=done.filter(a=>!(+a.amount)).length,lost=inR.filter(a=>a.status==='cancelled'||a.status==='noshow').length,pend=inR.filter(a=>a.status==='confirmed').length;
@@ -858,7 +876,7 @@ function vIngresos(){
   <button type="button" class="iconbtn" data-act="rangeGo" data-n="-1" aria-label="Periodo anterior">${ic('l')}</button><button type="button" class="iconbtn" data-act="rangeGo" data-n="1" aria-label="Periodo siguiente">${ic('r')}</button></div></header>
   ${demoBanner()}<div class="seg">${[['dia','Día'],['semana','Semana'],['mes','Mes']].map(([k,l])=>`<button type="button" data-act="range" data-k="${k}" aria-pressed="${ui.range===k}">${l}</button>`).join('')}</div>
   <div class="big num"><span>Total cobrado</span><b>${money(tot)}</b><small>${done.length} cita${done.length===1?'':'s'} atendida${done.length===1?'':'s'}${pend?` · ${pend} por atender`:''}${lost?` · ${lost} cancelada${lost===1?'':'s'} o sin asistir`:''}</small></div>
-  ${sinCobro?`<p class="note" style="margin:0 0 4px">${sinCobro} cita${sinCobro===1?'':'s'} sin cobro anotado. Tócala${sinCobro===1?'':'s'} en la lista para agregarlo.</p>`:''}${chart}${bySvc}${list}`;
+  ${incCal()}${sinCobro?`<p class="note" style="margin:0 0 4px">${sinCobro} cita${sinCobro===1?'':'s'} sin cobro anotado. Tócala${sinCobro===1?'':'s'} en la lista para agregarlo.</p>`:''}${chart}${bySvc}${list}`;
 }
 function vSalon(){
  const T=ui.salon;let body='';
@@ -888,7 +906,7 @@ function vSalon(){
   const s=db.settings;
   body=`<div class="lockup" role="img" aria-label="Sutil, estudio by Clara"></div><div class="field"><label for="sn">Nombre del salón</label><input class="in" id="sn" value="${esc(s.name)}" data-in="sname"></div>
    <div class="sub">Copia de seguridad</div><p class="note" style="margin:0 0 10px">${syncLabel()}</p>
-    ${sync.mode==='cloud'?`<div class="acts" style="margin-bottom:14px"><button type="button" class="btn tonal block" data-act="syncNow">Revisar ahora</button><button type="button" class="btn ghost block" data-act="pinAsk">Cambiar mi clave</button><button type="button" class="btn ghost block" data-act="logout">Cerrar sesión en este teléfono</button></div>`:''}
+    <p class="note" style="margin:0 0 8px">Versión de la app: v8</p>${sync.mode==='cloud'?`<div class="acts" style="margin-bottom:14px"><button type="button" class="btn tonal block" data-act="syncNow">Revisar ahora</button><button type="button" class="btn ghost block" data-act="pinAsk">Cambiar mi clave</button><button type="button" class="btn ghost block" data-act="logout">Cerrar sesión en este teléfono</button></div>`:''}
     <div class="sub">Copia extra</div><p class="note" style="margin:0 0 10px">Además, puedes guardar una copia en una nota.</p>
    <div class="acts"><button type="button" class="btn tonal block" data-act="backup">Copiar copia de seguridad</button><button type="button" class="btn ghost block" data-act="restore">Restaurar copia</button>
    <button type="button" class="btn danger block" data-act="wipeAsk">Borrar todos los datos</button></div>`;
@@ -905,14 +923,22 @@ function render(){
 }
 
 /* ───────── hojas ───────── */
+const shwrap=$('#shwrap');
+Object.defineProperty(sheet,'open',{get:()=>!shwrap.hidden});
+sheet.showModal=()=>{shwrap.hidden=false;document.body.classList.add('sh-open');fitSheet()};
+sheet.close=()=>{if(shwrap.hidden)return;shwrap.hidden=true;document.body.classList.remove('sh-open');sheet.innerHTML='';sheet.dispatchEvent(new Event('close'))};
+function fitSheet(){const v=window.visualViewport;shwrap.style.top=(v?v.offsetTop:0)+'px';shwrap.style.height=(v?v.height:innerHeight)+'px'}
+if(window.visualViewport){visualViewport.addEventListener('resize',fitSheet);visualViewport.addEventListener('scroll',fitSheet)}
+addEventListener('resize',fitSheet);
 function openSheet(html,keepScroll){
  const old=sheet.querySelector('.sh-body'),st=keepScroll&&old?old.scrollTop:0;
  sheet.innerHTML=html;if(!sheet.open)sheet.showModal();
  const nb=sheet.querySelector('.sh-body');if(nb)nb.scrollTop=st;
 }
 function closeSheet(){if(sheet.open)sheet.close()}
-sheet.addEventListener('click',e=>{if(e.target===sheet)closeSheet()});
-sheet.addEventListener('close',()=>{if(!sheet.open)wiz=null});
+shwrap.addEventListener('click',e=>{if(e.target===shwrap)closeSheet()});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&sheet.open)closeSheet()});
+sheet.addEventListener('close',()=>{wiz=null});
 const head=(t,sub)=>`<div class="grab"></div><div class="sh-head"><div><h2 id="shtitle">${t}</h2>${sub?`<p>${sub}</p>`:''}</div><button type="button" class="iconbtn" data-act="closeSheet" aria-label="Cerrar">${ic('x',20)}</button></div>`;
 
 /* asistente de cita */
@@ -927,11 +953,11 @@ function renderWiz(reset){
  const w=wiz,svc=w.serviceId?svcById(w.serviceId):null;let body='',foot='';
  const c=w.clientId?clientById(w.clientId):null,nm=c?c.name:w.newName.trim();
  if(w.step===1){
-  const pick=canPick()?`<button type="button" class="btn block" style="margin-bottom:10px" data-act="wPickContact">${ic('contact',20)}Elegir de mis contactos</button>`:`<button type="button" class="btn block" style="margin-bottom:10px" data-act="wImport">${ic('contact',20)}Traer mis contactos</button>`;
-  const known=w.mode==='new'?`<div class="field"><label for="nn">Nombre</label><input class="in" id="nn" value="${esc(w.newName)}" data-in="wName" autocomplete="off"></div><div class="field"><label for="np">WhatsApp</label><input class="in" id="np" inputmode="tel" value="${esc(w.newPhone)}" data-in="wPhone"></div><p class="err" id="werr" role="alert"></p><button type="button" class="btn ghost block" data-act="wSearch">Buscar entre mis clientes</button>`
-   :`<div class="search" style="margin-bottom:8px">${ic('search',20)}<input class="in" id="wq" type="search" placeholder="Buscar entre mis clientes" value="${esc(w.q)}" data-in="wQ" autocomplete="off"></div><div id="wres">${wizResults()}</div><button type="button" class="btn tonal block" style="margin-top:10px" data-act="wNew">${ic('plus',20)}Escribir un cliente nuevo</button>`;
-  body=pick+known;
-  foot=w.mode==='new'?`<button type="button" class="btn" data-act="wClientNext">Siguiente</button>`:'';
+  const cbtn=`<button type="button" class="btn tonal block" style="margin-top:12px" data-act="${canPick()?'wPickContact':'wImport'}">${ic('contact',20)}Traer de mis contactos</button>`;
+  const known=w.mode==='new'?`<div class="field"><label for="nn">Nombre</label><input class="in" id="nn" value="${esc(w.newName)}" data-in="wName" autocomplete="off"></div><div class="field"><label for="np">WhatsApp (para enviarle el mensaje)</label><input class="in" id="np" inputmode="tel" value="${esc(w.newPhone)}" data-in="wPhone" placeholder="Ej. 6000 0000"></div><p class="err" id="werr" role="alert"></p>${cbtn}<button type="button" class="btn ghost block" style="margin-top:10px" data-act="wSearch">Buscar entre mis clientes</button>`
+   :`<div class="field"><label for="wq">Nombre del cliente</label><input class="in" id="wq" type="text" placeholder="Escribe el nombre" value="${esc(w.q)}" data-in="wQ" autocomplete="off" enterkeyhint="next"></div><div id="wres">${wizResults()}</div>${cbtn}`;
+  body=known;
+  foot=`<button type="button" class="btn" data-act="wClientNext">Siguiente</button>`;
  }else if(w.step===2){
   const cats=[...new Set(db.services.filter(s=>s.active).map(s=>s.cat))];
   body=`<p class="note" style="margin:0 0 8px">Cita para <b style="color:var(--ink)">${esc(nm)}</b></p>`+(cats.map(cat=>`<div class="sub" style="margin-top:6px">${esc(cat)}</div>${db.services.filter(s=>s.active&&s.cat===cat).map(s=>`<button type="button" class="opt ${w.serviceId===s.id?'on':''}" data-act="wSvc" data-id="${s.id}"><i class="dot" style="background:${catColor(s.cat)}"></i><span class="t">${esc(s.name)}</span><span class="r num">${durLabel(s.dur)}</span></button>`).join('')}`).join('')||`<div class="empty"><p>No hay servicios activos. Actívalos en Ajustes.</p></div>`);
@@ -954,9 +980,13 @@ function renderWiz(reset){
  if(w.step===3){try{sheet.querySelector('.dchip.on').scrollIntoView({inline:'center',block:'nearest'})}catch(e){}}
 }
 function wizResults(){
- const q=wiz.q.trim().toLowerCase(),qd=q.replace(/\D/g,'');
- const l=db.clients.filter(c=>!q||c.name.toLowerCase().includes(q)||(qd&&c.phone.replace(/\D/g,'').includes(qd))).sort((a,b)=>a.name.localeCompare(b.name,'es')).slice(0,5);
- return l.length?l.map(c=>`<button type="button" class="opt" data-act="wPick" data-id="${c.id}" style="min-height:56px;margin-bottom:6px"><span class="av">${esc(initials(c.name))}</span><span><span class="t">${esc(c.name)}</span><br><span class="s">${esc(c.phone||'Sin teléfono')}</span></span></button>`).join(''):`<p class="note">Ningún cliente coincide.</p>`;
+ const raw=wiz.q.trim(),q=raw.toLowerCase(),qd=q.replace(/\D/g,'');
+ const all=db.clients.filter(c=>!q||c.name.toLowerCase().includes(q)||(qd&&(c.phone||'').replace(/\D/g,'').includes(qd))).sort((a,b)=>a.name.localeCompare(b.name,'es'));
+ const l=all.slice(0,q?6:5);
+ let h=l.map(c=>`<button type="button" class="opt" data-act="wPick" data-id="${c.id}" style="min-height:60px;margin-bottom:8px"><span class="av">${esc(initials(c.name))}</span><span style="min-width:0"><span class="t">${esc(c.name)}</span><br><span class="s">${esc(c.phone||'Sin teléfono')}</span></span></button>`).join('');
+ if(raw&&!db.clients.some(c=>c.name.trim().toLowerCase()===q))h+=`<button type="button" class="opt on" data-act="wNew" style="min-height:60px;margin-bottom:8px"><span class="av">+</span><span class="t">Agregar «${esc(raw)}» como cliente nuevo</span></button>`;
+ else if(!raw&&!l.length)h=`<p class="note">Aún no tienes clientes. Escribe un nombre arriba.</p>`;
+ return h;
 }
 function wizStep(n){wiz.step=n;renderWiz(true)}
 function schedSheet(id){
@@ -1048,8 +1078,10 @@ const A={
   else{if(db.appts.some(a=>a.date===d.d&&a.status==='confirmed')){toast('Ese día tiene citas. Reprograma o cancela primero.');return}
    l.push(d.d);l.sort()}
   save();render();toast(i>=0?'Día libre quitado':'Día marcado como libre')},
- range:d=>{ui.range=d.k;render()},
- rangeGo:d=>{const a=parse(ui.anchor),n=+d.n;ui.anchor=ymd(ui.range==='dia'?addDays(a,n):ui.range==='semana'?addDays(a,7*n):new Date(a.getFullYear(),a.getMonth()+n,1));render()},
+ range:d=>{ui.range=d.k;ui.icm=null;render()},
+ calGo:d=>{const cm=(ui.icm||ui.anchor.slice(0,7)).split('-'),x=new Date(+cm[0],+cm[1]-1+(+d.n),1);ui.icm=ymd(x).slice(0,7);render()},
+ calDay:d=>{ui.range='dia';ui.anchor=d.d;ui.icm=d.d.slice(0,7);render();scrollTo(0,0)},
+ rangeGo:d=>{const a=parse(ui.anchor),n=+d.n;ui.anchor=ymd(ui.range==='dia'?addDays(a,n):ui.range==='semana'?addDays(a,7*n):new Date(a.getFullYear(),a.getMonth()+n,1));ui.icm=null;render()},
  salonTab:d=>{ui.salon=d.k;render()},
  demoClear:()=>{db.appts=[];db.clients=[];db.demo=false;ui.tab='agenda';after('Listo. Ya puedes agendar tus citas');scrollTo(0,0)},
  /* citas */
@@ -1088,12 +1120,19 @@ const A={
  wBack:()=>{if(wiz.step>1)wizStep(wiz.step-1)},
  wPick:d=>{wiz.clientId=d.id;wizStep(2)},
  wClientNext:()=>{const err=m=>{const e=$('#werr');if(e)e.textContent=m};
+  if(wiz.mode!=='new'){const q=wiz.q.trim();if(!q){const f=$('#wq');if(f)f.focus();return}
+   const ex=db.clients.find(c=>c.name.trim().toLowerCase()===q.toLowerCase());if(ex){wiz.clientId=ex.id;wizStep(2);return}
+   wiz.mode='new';wiz.newName=q;renderWiz();setTimeout(()=>{const f=$('#np');if(f)f.focus()},50);return}
   if(!wiz.newName.trim()){err('Escribe el nombre.');return}
   if(wiz.newPhone.trim()&&!waOk(wiz.newPhone)){err('Escribe el número completo de WhatsApp.');return}
   const dg=waDigits(wiz.newPhone),ex=dg?db.clients.find(c=>waDigits(c.phone)===dg):null;
   if(ex){wiz.clientId=ex.id}wizStep(2)},
- wImport:()=>{closeSheet();A.contacts()},
- wNew:()=>{wiz.mode='new';renderWiz()},
+ wImport:()=>{imp={list:[],q:'',sel:new Set(),err:'',wiz:true};renderImport()},
+ wBackImp:()=>renderWiz(),
+ impOne:d=>{const c=imp.list[+d.i];if(!c)return;const dg=waDigits(c.phone),ex=dg?db.clients.find(x=>waDigits(x.phone)===dg):null;
+  if(ex){wiz.clientId=ex.id;wizStep(2);return}
+  wiz.newName=c.name;wiz.newPhone=c.phone;wiz.mode='new';if(waOk(c.phone))wizStep(2);else renderWiz()},
+ wNew:()=>{wiz.mode='new';if(wiz.q.trim())wiz.newName=wiz.q.trim();renderWiz();setTimeout(()=>{const f=$('#np');if(f)f.focus()},50)},
  wSearch:()=>{wiz.mode='search';renderWiz()},
  wOk:()=>{
   const w=wiz,svc=svcById(w.serviceId),err=m=>{const e=$('#werr');if(e)e.textContent=m};
@@ -1170,15 +1209,16 @@ function parseVcf(t){const out=[];t=t.replace(/\r/g,'').replace(/\n[ \t]/g,'');
 const isDupPhone=p=>{const d=waDigits(p);return !d||db.clients.some(c=>waDigits(c.phone)===d)};
 function impRows(){const q=imp.q.trim().toLowerCase(),qd=q.replace(/\D/g,'');
  const l=imp.list.map((c,i)=>({c,i})).filter(x=>!q||x.c.name.toLowerCase().includes(q)||(qd&&x.c.phone.replace(/\D/g,'').includes(qd))).slice(0,150);
- return l.length?l.map(({c,i})=>{const dup=isDupPhone(c.phone);return `<label class="rw ${dup?'off':''}"><input type="checkbox" class="cb" data-in="impSel" data-i="${i}" ${imp.sel.has(i)?'checked':''} ${dup?'disabled':''}><span style="min-width:0"><span class="t">${esc(c.name)}</span><br><span class="s">${esc(fmtPhone(c.phone)||c.phone)}${dup?' · Ya registrado':''}</span></span></label>`}).join(''):`<p class="note" style="padding:14px;margin:0">Ningún contacto coincide.</p>`}
+ return l.length?l.map(({c,i})=>{const dup=isDupPhone(c.phone);if(imp.wiz)return `<button type="button" class="opt" data-act="impOne" data-i="${i}" style="min-height:60px;margin-bottom:8px"><span class="av">${esc(initials(c.name))}</span><span style="min-width:0"><span class="t">${esc(c.name)}</span><br><span class="s">${esc(fmtPhone(c.phone)||c.phone)}${dup?' · Ya es cliente':''}</span></span></button>`;
+  return `<label class="rw ${dup?'off':''}"><input type="checkbox" class="cb" data-in="impSel" data-i="${i}" ${imp.sel.has(i)?'checked':''} ${dup?'disabled':''}><span style="min-width:0"><span class="t">${esc(c.name)}</span><br><span class="s">${esc(fmtPhone(c.phone)||c.phone)}${dup?' · Ya registrado':''}</span></span></label>`}).join(''):`<p class="note" style="padding:14px;margin:0">Ningún contacto coincide.</p>`}
 function updImpFoot(){const b=$('#impgo');if(b){b.textContent='Importar '+imp.sel.size;b.disabled=!imp.sel.size}}
 function renderImport(){
- const i=imp,pick=canPick()?`<button type="button" class="btn block" style="margin-bottom:10px" data-act="pick">${ic('contact',20)}Elegir de mis contactos</button>`:'';
+ const i=imp,pick=canPick()?`<button type="button" class="btn block" style="margin-bottom:10px" data-act="${i.wiz?'wPickContact':'pick'}">${ic('contact',20)}Elegir de mis contactos</button>`:'';
  const file=`<label class="btn ${canPick()?'tonal':''} block" for="vcf" style="cursor:pointer">${ic('plus',20)}Subir archivo de contactos (.vcf)</label><input type="file" id="vcf" accept=".vcf,text/vcard,text/x-vcard,text/directory" data-in="vcf" hidden>`;
- const help=i.list.length?'':`<p class="note" style="margin-top:14px">Si tu teléfono no deja elegir contactos desde aquí, exporta tus contactos como archivo .vcf y súbelo. En Android: Contactos › Ajustes › Exportar. En iPhone: iCloud.com › Contactos › Exportar vCard.</p>`;
+ const help=i.list.length?'':`<p class="note" style="margin-top:14px">Android (Chrome) abre tus contactos con el botón de arriba. El iPhone no permite que una página abra la agenda; ahí usa el archivo .vcf: exporta tus contactos como archivo .vcf y súbelo. En Android: Contactos › Ajustes › Exportar. En iPhone: iCloud.com › Contactos › Exportar vCard.</p>`;
  const list=i.list.length?`<div class="search" style="margin:16px 0 8px">${ic('search',20)}<input class="in" id="iq" type="search" placeholder="Buscar en ${i.list.length} contactos" value="${esc(i.q)}" data-in="impQ" autocomplete="off"></div>
-  <div class="row" style="margin-bottom:10px"><button type="button" class="chip" data-act="impAll">Todos</button><button type="button" class="chip" data-act="impNone">Ninguno</button></div><div class="rows" id="implist">${impRows()}</div>`:'';
- openSheet(`${head('Importar contactos','Se guardan como clientes, con su WhatsApp')}<div class="sh-body">${pick}${file}${i.err?`<p class="err" style="margin-top:10px" role="alert">${esc(i.err)}</p>`:''}${help}${list}</div>${i.list.length?`<div class="sh-foot"><button type="button" class="btn" id="impgo" data-act="impGo" ${i.sel.size?'':'disabled'}>Importar ${i.sel.size}</button></div>`:''}`,true);
+  ${i.wiz?'':'<div class="row" style="margin-bottom:10px"><button type="button" class="chip" data-act="impAll">Todos</button><button type="button" class="chip" data-act="impNone">Ninguno</button></div>'}<div class="rows" id="implist">${impRows()}</div>`:'';
+ openSheet(`${head('Importar contactos','Se guardan como clientes, con su WhatsApp')}<div class="sh-body">${pick}${file}${i.err?`<p class="err" style="margin-top:10px" role="alert">${esc(i.err)}</p>`:''}${help}${list}</div>${i.wiz?`<div class="sh-foot"><button type="button" class="btn ghost" data-act="wBackImp">Volver</button></div>`:i.list.length?`<div class="sh-foot"><button type="button" class="btn" id="impgo" data-act="impGo" ${i.sel.size?'':'disabled'}>Importar ${i.sel.size}</button></div>`:''}`,true);
 }
 Object.assign(A,{
  maint:()=>maintSheet(),
@@ -1205,9 +1245,9 @@ Object.assign(A,{
 });
 const I={
  dateIn:el=>{if(el.value){ui.date=el.value;render()}},
- cq:el=>{ui.q=el.value;const l=$('#clist');if(l)l.innerHTML=clientRows()},
+ cq:el=>{if(ui.q===el.value)return;ui.q=el.value;const l=$('#clist');if(l)l.innerHTML=clientRows()},
  wDate:el=>{if(el.value&&el.value>=todayStr()){wiz.date=el.value;wiz.start=null;renderWiz()}},
- wQ:el=>{wiz.q=el.value;const r=$('#wres');if(r)r.innerHTML=wizResults()},
+ wQ:el=>{if(wiz.q===el.value)return;wiz.q=el.value;const r=$('#wres');if(r)r.innerHTML=wizResults()},
  wName:el=>{wiz.newName=el.value},wPhone:el=>{wiz.newPhone=el.value},wNotes:el=>{wiz.notes=el.value},
  blk:(el,ev)=>{if(ev.type!=='change')return;const i=+el.dataset.i,j=+el.dataset.j,b=db.settings.blocks.slice();while(b.length<2)b.push(['','']);
   b[i]=b[i].slice();b[i][j]=el.value;db.settings.blocks=b.filter(x=>x[0]||x[1]);save();render()},
@@ -1219,8 +1259,8 @@ const I={
  vcf:(el,ev)=>{if(ev.type!=='change')return;const f=el.files&&el.files[0];if(!f)return;const r=new FileReader();
   r.onload=()=>{imp.list=parseVcf(String(r.result)).sort((a,b)=>a.name.localeCompare(b.name,'es'));imp.sel=new Set();imp.q='';imp.err=imp.list.length?'':'No encontré contactos con teléfono en ese archivo.';renderImport()};
   r.onerror=()=>{imp.err='No se pudo leer el archivo.';renderImport()};r.readAsText(f)},
- chgq:el=>{chg.q=el.value;const l=$('#chglist');if(l)l.innerHTML=chgRows()},
- impQ:el=>{imp.q=el.value;const l=$('#implist');if(l)l.innerHTML=impRows()},
+ chgq:el=>{if(chg.q===el.value)return;chg.q=el.value;const l=$('#chglist');if(l)l.innerHTML=chgRows()},
+ impQ:el=>{if(imp.q===el.value)return;imp.q=el.value;const l=$('#implist');if(l)l.innerHTML=impRows()},
  impSel:el=>{const i=+el.dataset.i;if(el.checked)imp.sel.add(i);else imp.sel.delete(i);updImpFoot()}
 };
 document.addEventListener('click',e=>{const w=e.target.closest('[data-wa]');if(w){A.waLog(w.dataset);return}const t=e.target.closest('[data-act]');if(!t)return;const f=A[t.dataset.act];if(f){e.preventDefault();f(t.dataset,t)}});
