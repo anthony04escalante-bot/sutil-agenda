@@ -599,6 +599,7 @@ body.sh-open{overflow:hidden}
 div#sheet{display:flex;flex-direction:column;width:100%;max-width:600px;max-height:calc(100% - 16px);padding:0;background:var(--surface);color:var(--ink);overflow:hidden;border-radius:32px 32px 0 0;animation:up .22s ease-out}
 .toast{z-index:70!important}
 .ical{gap:4px}.ical button{aspect-ratio:auto;height:50px;border-radius:16px;padding:0;min-width:0;overflow:hidden;font:800 18px var(--f-body);gap:0}.ical button small{font:800 11px var(--f-body);min-height:13px;line-height:13px}.ical i{aspect-ratio:auto;height:0}
+.sh-foot .btn.wa{white-space:nowrap;font-size:18px;gap:8px;padding:0 14px}.sh-foot .btn.ghost{padding:0 20px}
 </style>
 
 </head>
@@ -660,7 +661,7 @@ const DEFMSG={
  maint:'Hola {nombre}, te escribimos de {salon}. Ya es momento del mantenimiento de tu {servicio}. ¿Te agendamos una cita? Responde a este mensaje y te reservamos tu horario.'};
 const OWNER=()=>({id:'owner',name:'Clara',phone:'',active:true,services:[]});
 function baseDb(){
- return{v:5,demo:false,maint:{},settings:{off:[],name:'Salón Spa Sutil by Clara',phone:'',cc:'507',blocks:[['09:00','13:00'],['14:00','18:00']],daysOpen:[1,2,3,4,5,6],step:30,msg:{...DEFMSG}},
+ return{v:5,demo:false,maint:{},settings:{off:[],name:'Salón Spa Sutil by Clara',phone:'60435416',cc:'507',blocks:[['09:00','13:00'],['14:00','18:00']],daysOpen:[1,2,3,4,5,6],step:30,msg:{...DEFMSG}},
   services:DEFAULT_SERVICES.map(([name,cat,dur,maint],i)=>({id:'s'+i,name,cat,dur,maint,active:true})),staff:[OWNER()],clients:[],appts:[]};
 }
 function buildDemo(){
@@ -688,7 +689,7 @@ function migrate(d){if((d.v||1)<2){d.v=1;d.services.forEach(s=>{delete s.price})
   d.services.forEach(x=>{if(x.maint==null)x.maint=M[x.name]||0});d.maint=d.maint||{};d.settings.msg=d.settings.msg||{...DEFMSG};d.v=3}
  if(d.v<5){const OLD='Hola {nombre}, te escribimos de {salon}. Tu cita de {servicio} es el {fecha} a las {hora}. ¿Nos confirmas tu asistencia? Responde SÍ para confirmar. ¡Gracias!';if(d.settings.msg&&d.settings.msg.confirm===OLD)d.settings.msg.confirm=DEFMSG.confirm;d.v=Math.min(d.v,4)}
  if(d.v<4){d.staff=[OWNER()];d.appts.forEach(a=>{a.staffId='owner'});d.settings.off=d.settings.off||[];d.v=4}
- d.v=5;
+ d.v=5;if(!d.settings.phone)d.settings.phone='60435416';
  return d}
 function load(){try{const r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);if(d&&Array.isArray(d.services)&&Array.isArray(d.appts))return migrate(d)}}catch(e){}return null}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){memOnly=true}
@@ -954,8 +955,7 @@ function renderWiz(reset){
  const c=w.clientId?clientById(w.clientId):null,nm=c?c.name:w.newName.trim();
  if(w.step===1){
   const cbtn=`<button type="button" class="btn tonal block" style="margin-top:12px" data-act="${canPick()?'wPickContact':'wImport'}">${ic('contact',20)}Traer de mis contactos</button>`;
-  const known=w.mode==='new'?`<div class="field"><label for="nn">Nombre</label><input class="in" id="nn" value="${esc(w.newName)}" data-in="wName" autocomplete="off"></div><div class="field"><label for="np">WhatsApp (para enviarle el mensaje)</label><input class="in" id="np" inputmode="tel" value="${esc(w.newPhone)}" data-in="wPhone" placeholder="Ej. 6000 0000"></div><p class="err" id="werr" role="alert"></p>${cbtn}<button type="button" class="btn ghost block" style="margin-top:10px" data-act="wSearch">Buscar entre mis clientes</button>`
-   :`<div class="field"><label for="wq">Nombre del cliente</label><input class="in" id="wq" type="text" placeholder="Escribe el nombre" value="${esc(w.q)}" data-in="wQ" autocomplete="off" enterkeyhint="next"></div><div id="wres">${wizResults()}</div>${cbtn}`;
+  const known=`<div class="field"><label for="wq">Nombre del cliente</label><input class="in" id="wq" type="text" placeholder="Escribe el nombre" value="${esc(w.q)}" data-in="wQ" autocomplete="off" enterkeyhint="next"></div><div id="wres">${wizResults()}</div><div class="field"><label for="np">WhatsApp del cliente</label><input class="in" id="np" inputmode="tel" value="${esc(w.newPhone)}" data-in="wPhone" placeholder="Ej. 6000 0000" autocomplete="off"></div><p class="err" id="werr" role="alert"></p>${cbtn}`;
   body=known;
   foot=`<button type="button" class="btn" data-act="wClientNext">Siguiente</button>`;
  }else if(w.step===2){
@@ -981,12 +981,9 @@ function renderWiz(reset){
 }
 function wizResults(){
  const raw=wiz.q.trim(),q=raw.toLowerCase(),qd=q.replace(/\D/g,'');
- const all=db.clients.filter(c=>!q||c.name.toLowerCase().includes(q)||(qd&&(c.phone||'').replace(/\D/g,'').includes(qd))).sort((a,b)=>a.name.localeCompare(b.name,'es'));
- const l=all.slice(0,q?6:5);
- let h=l.map(c=>`<button type="button" class="opt" data-act="wPick" data-id="${c.id}" style="min-height:60px;margin-bottom:8px"><span class="av">${esc(initials(c.name))}</span><span style="min-width:0"><span class="t">${esc(c.name)}</span><br><span class="s">${esc(c.phone||'Sin teléfono')}</span></span></button>`).join('');
- if(raw&&!db.clients.some(c=>c.name.trim().toLowerCase()===q))h+=`<button type="button" class="opt on" data-act="wNew" style="min-height:60px;margin-bottom:8px"><span class="av">+</span><span class="t">Agregar «${esc(raw)}» como cliente nuevo</span></button>`;
- else if(!raw&&!l.length)h=`<p class="note">Aún no tienes clientes. Escribe un nombre arriba.</p>`;
- return h;
+ if(!raw)return '';
+ const l=db.clients.filter(c=>c.name.toLowerCase().includes(q)||(qd&&(c.phone||'').replace(/\D/g,'').includes(qd))).sort((a,b)=>a.name.localeCompare(b.name,'es')).slice(0,4);
+ return l.length?`<div class="sub" style="margin:0 0 6px">Ya registrados · toca para elegir</div>`+l.map(c=>`<button type="button" class="opt" data-act="wPick" data-id="${c.id}" style="min-height:60px;margin-bottom:8px"><span class="av">${esc(initials(c.name))}</span><span style="min-width:0"><span class="t">${esc(c.name)}</span><br><span class="s">${esc(c.phone||'Sin teléfono')}</span></span></button>`).join(''):'';
 }
 function wizStep(n){wiz.step=n;renderWiz(true)}
 function schedSheet(id){
@@ -1118,20 +1115,18 @@ const A={
  wDay:d=>{wiz.date=d.d;wiz.start=null;renderWiz()},
  wSlot:d=>{wiz.start=+d.s;renderWiz()},
  wBack:()=>{if(wiz.step>1)wizStep(wiz.step-1)},
- wPick:d=>{wiz.clientId=d.id;wizStep(2)},
+ wPick:d=>{const c=clientById(d.id);wiz.clientId=d.id;wiz.q=c.name;wiz.newName=c.name;wiz.newPhone=c.phone||'';wizStep(2)},
  wClientNext:()=>{const err=m=>{const e=$('#werr');if(e)e.textContent=m};
-  if(wiz.mode!=='new'){const q=wiz.q.trim();if(!q){const f=$('#wq');if(f)f.focus();return}
-   const ex=db.clients.find(c=>c.name.trim().toLowerCase()===q.toLowerCase());if(ex){wiz.clientId=ex.id;wizStep(2);return}
-   wiz.mode='new';wiz.newName=q;renderWiz();setTimeout(()=>{const f=$('#np');if(f)f.focus()},50);return}
-  if(!wiz.newName.trim()){err('Escribe el nombre.');return}
-  if(wiz.newPhone.trim()&&!waOk(wiz.newPhone)){err('Escribe el número completo de WhatsApp.');return}
-  const dg=waDigits(wiz.newPhone),ex=dg?db.clients.find(c=>waDigits(c.phone)===dg):null;
-  if(ex){wiz.clientId=ex.id}wizStep(2)},
+  const name=wiz.q.trim(),ph=wiz.newPhone.trim();
+  if(!name){err('Escribe el nombre.');const f=$('#wq');if(f)f.focus();return}
+  if(ph&&!waOk(ph)){err('Escribe el número completo de WhatsApp.');const f=$('#np');if(f)f.focus();return}
+  const dg=waDigits(ph),ex=dg?db.clients.find(c=>waDigits(c.phone)===dg):(db.clients.find(c=>c.name.trim().toLowerCase()===name.toLowerCase()));
+  wiz.clientId=ex?ex.id:null;wiz.newName=name;wizStep(2)},
  wImport:()=>{imp={list:[],q:'',sel:new Set(),err:'',wiz:true};renderImport()},
  wBackImp:()=>renderWiz(),
  impOne:d=>{const c=imp.list[+d.i];if(!c)return;const dg=waDigits(c.phone),ex=dg?db.clients.find(x=>waDigits(x.phone)===dg):null;
-  if(ex){wiz.clientId=ex.id;wizStep(2);return}
-  wiz.newName=c.name;wiz.newPhone=c.phone;wiz.mode='new';if(waOk(c.phone))wizStep(2);else renderWiz()},
+  if(ex){wiz.clientId=ex.id;wiz.q=ex.name;wiz.newName=ex.name;wiz.newPhone=ex.phone||'';wizStep(2);return}
+  wiz.newName=c.name;wiz.q=c.name;wiz.newPhone=c.phone;wiz.mode='new';if(waOk(c.phone))wizStep(2);else renderWiz()},
  wNew:()=>{wiz.mode='new';if(wiz.q.trim())wiz.newName=wiz.q.trim();renderWiz();setTimeout(()=>{const f=$('#np');if(f)f.focus()},50)},
  wSearch:()=>{wiz.mode='search';renderWiz()},
  wOk:()=>{
@@ -1239,7 +1234,7 @@ Object.assign(A,{
   closeSheet();ui.tab='clientes';after(n?`${n} contacto${n===1?'':'s'} importado${n===1?'':'s'}`:'No había contactos nuevos');scrollTo(0,0)},
  wPickContact:async()=>{try{const r=await navigator.contacts.select(['name','tel'],{multiple:false}),x=r&&r[0];
    if(x){const ph=(x.tel&&x.tel[0]||'').replace(/[^\d+]/g,''),nm=(x.name&&x.name[0])||'',dg=waDigits(ph),ex=dg?db.clients.find(c=>waDigits(c.phone)===dg):null;
-    if(ex){wiz.clientId=ex.id}else{wiz.newName=nm;wiz.newPhone=ph;wiz.mode='new'}
+    if(ex){wiz.clientId=ex.id;wiz.q=ex.name;wiz.newName=ex.name;wiz.newPhone=ex.phone||''}else{wiz.newName=nm;wiz.q=nm;wiz.newPhone=ph;wiz.mode='new'}
     if(ex||(nm&&waOk(ph)))wizStep(2);else renderWiz()}}
   catch(e){const er=$('#werr');if(er)er.textContent='No se pudo abrir tus contactos desde aquí.';else{wiz.mode='new';renderWiz();const e2=$('#werr');if(e2)e2.textContent='No se pudo abrir tus contactos desde aquí. Escribe el nombre y el número.'}}}
 });
