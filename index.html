@@ -844,7 +844,7 @@ function clientRows(){
   return `<button type="button" class="rw" data-act="client" data-id="${c.id}"><span class="av">${esc(initials(c.name))}</span><span style="min-width:0"><span class="t">${esc(c.name)}${t.min?`<span class="tier ${t.n}">${t.n}</span>`:''}</span><br><span class="s">${last?'Última visita '+dmShort(parse(last.date)):'Sin visitas'}${c.phone?' · '+esc(c.phone):''}</span></span></button>`}).join('')}</div>`;
 }
 function vClientes(){
- return `<header class="top"><div class="sal">${esc(db.settings.name)}</div><div class="row"><h1 class="sp">Clientes<small>${db.clients.length} registrados</small></h1><button type="button" class="iconbtn" data-act="contacts" aria-label="Importar contactos">${ic('contact')}</button><button type="button" class="iconbtn" data-act="clientNew" aria-label="Nuevo cliente">${ic('plus')}</button></div></header>
+ return `<header class="top"><div class="sal">${esc(db.settings.name)}</div><div class="row"><h1 class="sp">Clientes<small>${db.clients.length} registrados</small></h1><button type="button" class="iconbtn" data-act="clientNew" aria-label="Nuevo cliente">${ic('plus')}</button></div></header>
   ${demoBanner()}<div class="search">${ic('search',20)}<input class="in" id="cq" type="search" placeholder="Buscar por nombre o teléfono" value="${esc(ui.q)}" data-in="cq" autocomplete="off"></div><div id="clist">${clientRows()}</div>`;
 }
 function bounds(){
@@ -923,7 +923,7 @@ function vSalon(){
   const s=db.settings;
   body=`<div class="lockup" role="img" aria-label="Sutil, estudio by Clara"></div><div class="field"><label for="sn">Nombre del salón</label><input class="in" id="sn" value="${esc(s.name)}" data-in="sname"></div>
    <div class="sub">Copia de seguridad</div><p class="note" style="margin:0 0 10px">${syncLabel()}</p>
-    <p class="note" style="margin:0 0 8px">Versión de la app: v14</p>${sync.mode==='cloud'?`<div class="acts" style="margin-bottom:14px"><button type="button" class="btn tonal block" data-act="syncNow">Revisar ahora</button><button type="button" class="btn ghost block" data-act="pinAsk">Cambiar mi clave</button><button type="button" class="btn ghost block" data-act="logout">Cerrar sesión en este teléfono</button></div>`:''}
+    <p class="note" style="margin:0 0 8px">Versión de la app: v16</p>${sync.mode==='cloud'?`<div class="acts" style="margin-bottom:14px"><button type="button" class="btn tonal block" data-act="syncNow">Revisar ahora</button><button type="button" class="btn ghost block" data-act="pinAsk">Cambiar mi clave</button><button type="button" class="btn ghost block" data-act="logout">Cerrar sesión en este teléfono</button></div>`:''}
     <div class="sub">Copia extra</div><p class="note" style="margin:0 0 10px">Además, puedes guardar una copia en una nota.</p>
    <div class="acts"><button type="button" class="btn tonal block" data-act="backup">Copiar copia de seguridad</button><button type="button" class="btn ghost block" data-act="restore">Restaurar copia</button>
    <button type="button" class="btn danger block" data-act="wipeAsk">Borrar todos los datos</button></div>`;
@@ -962,7 +962,7 @@ const head=(t,sub)=>`<div class="grab"></div><div class="sh-head"><div><h2 id="s
 let wiz=null;
 function defaultDate(){let d=ui.date<todayStr()?todayStr():ui.date;for(let i=0;i<8&&!isOpenDay(d);i++)d=ymd(addDays(parse(d),1));return d}
 function wizStart(o={}){
- wiz=Object.assign({step:1,serviceId:null,staffId:'owner',date:defaultDate(),start:null,clientId:null,mode:'search',newName:'',newPhone:'',notes:'',editId:null,q:'',price:''},o);
+ wiz=Object.assign({step:1,serviceId:null,staffId:'owner',date:defaultDate(),start:null,clientId:null,mode:'new',newName:'',newPhone:'',notes:'',editId:null,q:'',price:''},o);
  renderWiz(true);
 }
 const WT=['¿Para quién es la cita?','¿Qué servicio?','¿Cuándo?'];
@@ -970,10 +970,11 @@ function renderWiz(reset){
  const w=wiz,svc=w.serviceId?svcById(w.serviceId):null;let body='',foot='';
  const c=w.clientId?clientById(w.clientId):null,nm=c?c.name:w.newName.trim();
  if(w.step===1){
-  const cbtn=`<button type="button" class="btn tonal block" style="margin-top:12px" data-act="${canPick()?'wPickContact':'wImport'}">${ic('contact',20)}Traer de mis contactos</button>`;
-  const known=`<div class="field"><label for="wq">Nombre del cliente</label><input class="in" id="wq" type="text" placeholder="Escribe el nombre" value="${esc(w.q)}" data-in="wQ" autocomplete="off" enterkeyhint="next"></div><div id="wres">${wizResults()}</div><div class="field"><label for="np">WhatsApp del cliente</label><input class="in" id="np" inputmode="tel" value="${esc(w.newPhone)}" data-in="wPhone" placeholder="Ej. 6000 0000" autocomplete="off"></div><p class="err" id="werr" role="alert"></p>${cbtn}`;
-  body=known;
-  foot=`<button type="button" class="btn" data-act="wClientNext">Siguiente</button>`;
+  const n=db.clients.length;
+  body=w.mode==='search'
+   ?`<button type="button" class="btn ghost block" style="margin-bottom:12px" data-act="wMode" data-m="new">${ic('l',20)}Escribir cliente nuevo</button><div class="search" style="margin-bottom:10px">${ic('search',20)}<input class="in" id="wq" type="search" placeholder="Buscar en mis clientes" value="${esc(w.q)}" data-in="wQ" autocomplete="off"></div><div id="wres">${wizResults()}</div>`
+   :`${n?`<button type="button" class="btn tonal block" style="margin-bottom:14px" data-act="wMode" data-m="search">${ic('contact',20)}Clientes guardados · ${n}</button>`:''}<div class="field"><label for="nn">Nombre del cliente</label><input class="in" id="nn" value="${esc(w.q)}" data-in="wName" placeholder="Escribe el nombre" autocomplete="off" enterkeyhint="next"></div><div id="wsug">${wizSug()}</div><div class="field"><label for="np">WhatsApp del cliente</label><input class="in" id="np" inputmode="tel" value="${esc(w.newPhone)}" data-in="wPhone" placeholder="Ej. 6000 0000" autocomplete="off"></div><p class="err" id="werr" role="alert"></p><p class="note">Queda guardado en tu directorio. La próxima vez lo buscas en "Clientes guardados".</p>`;
+  foot=w.mode==='new'?`<button type="button" class="btn" data-act="wClientNext">Siguiente</button>`:'';
  }else if(w.step===2){
   const cats=[...new Set(db.services.filter(s=>s.active).map(s=>s.cat))];
   body=`<p class="note" style="margin:0 0 8px">Cita para <b style="color:var(--ink)">${esc(nm)}</b></p>`+(cats.map(cat=>`<div class="sub" style="margin-top:6px">${esc(cat)}</div>${db.services.filter(s=>s.active&&s.cat===cat).map(s=>`<button type="button" class="opt ${w.serviceId===s.id?'on':''}" data-act="wSvc" data-id="${s.id}"><i class="dot" style="background:${catColor(s.cat)}"></i><span class="t">${esc(s.name)}</span><span class="r num">${durLabel(s.dur)}</span></button>`).join('')}`).join('')||`<div class="empty"><p>No hay servicios activos. Actívalos en Ajustes.</p></div>`);
@@ -996,11 +997,16 @@ function renderWiz(reset){
  openSheet(`${head(w.editId?'Reprogramar cita':WT[w.step-1],w.editId?WT[w.step-1]:null)}<div class="prog">${[1,2,3].map(i=>`<i class="${i<=w.step?'on':''}"></i>`).join('')}</div><div class="sh-body">${body}</div>${foot?`<div class="sh-foot">${foot}</div>`:''}`,!reset);
  if(w.step===3){try{sheet.querySelector('.dchip.on').scrollIntoView({inline:'center',block:'nearest'})}catch(e){}}
 }
+function wizSug(){
+ const q=wiz.q.trim().toLowerCase();if(!q)return '';
+ const l=db.clients.filter(c=>c.name.toLowerCase().includes(q)&&c.name.trim().toLowerCase()!==q).sort((a,b)=>a.name.localeCompare(b.name,'es')).slice(0,3);
+ return l.length?`<div class="sub" style="margin:-4px 0 6px">Ya guardados · toca para completar</div>`+l.map(c=>`<button type="button" class="opt" data-act="wFill" data-id="${c.id}" style="min-height:56px;margin-bottom:8px"><span class="av">${esc(initials(c.name))}</span><span style="min-width:0"><span class="t">${esc(c.name)}</span><br><span class="s">${esc(c.phone?fmtPhone(c.phone)||c.phone:'Sin teléfono')}</span></span></button>`).join(''):'';
+}
 function wizResults(){
- const raw=wiz.q.trim(),q=raw.toLowerCase(),qd=q.replace(/\D/g,'');
- if(!raw)return '';
- const l=db.clients.filter(c=>c.name.toLowerCase().includes(q)||(qd&&(c.phone||'').replace(/\D/g,'').includes(qd))).sort((a,b)=>a.name.localeCompare(b.name,'es')).slice(0,4);
- return l.length?`<div class="sub" style="margin:0 0 6px">Ya registrados · toca para elegir</div>`+l.map(c=>`<button type="button" class="opt" data-act="wPick" data-id="${c.id}" style="min-height:60px;margin-bottom:8px"><span class="av">${esc(initials(c.name))}</span><span style="min-width:0"><span class="t">${esc(c.name)}</span><br><span class="s">${esc(c.phone||'Sin teléfono')}</span></span></button>`).join(''):'';
+ const q=wiz.q.trim().toLowerCase(),qd=q.replace(/\D/g,'');
+ const l=db.clients.filter(c=>!q||c.name.toLowerCase().includes(q)||(qd&&(c.phone||'').replace(/\D/g,'').includes(qd))).sort((a,b)=>a.name.localeCompare(b.name,'es')).slice(0,80);
+ if(!l.length)return `<p class="note">Ningún cliente coincide.</p><button type="button" class="btn tonal block" data-act="wNew">${ic('plus',20)}Agregar${q?' «'+esc(wiz.q.trim())+'»':''} como cliente nuevo</button>`;
+ return l.map(c=>`<button type="button" class="opt" data-act="wFill" data-id="${c.id}" style="min-height:60px;margin-bottom:8px"><span class="av">${esc(initials(c.name))}</span><span style="min-width:0"><span class="t">${esc(c.name)}</span><br><span class="s">${esc(c.phone?fmtPhone(c.phone)||c.phone:'Sin teléfono')}</span></span></button>`).join('');
 }
 function wizStep(n){wiz.step=n;renderWiz(true)}
 function schedSheet(id){
@@ -1150,6 +1156,8 @@ const A={
   wiz.newName=c.name;wiz.q=c.name;wiz.newPhone=c.phone;wiz.mode='new';if(waOk(c.phone))wizStep(2);else renderWiz()},
  wNew:()=>{wiz.mode='new';if(wiz.q.trim())wiz.newName=wiz.q.trim();renderWiz();setTimeout(()=>{const f=$('#np');if(f)f.focus()},50)},
  wSearch:()=>{wiz.mode='search';renderWiz()},
+ wMode:d=>{wiz.mode=d.m;renderWiz()},
+ wFill:d=>{const c=clientById(d.id);wiz.clientId=c.id;wiz.q=c.name;wiz.newName=c.name;wiz.newPhone=c.phone||'';wiz.mode='new';renderWiz()},
  wOk:()=>{
   const w=wiz,svc=svcById(w.serviceId),err=m=>{const e=$('#werr');if(e)e.textContent=m};
   let cid=w.clientId,fresh=null;
@@ -1266,7 +1274,7 @@ const I={
  cq:el=>{if(ui.q===el.value)return;ui.q=el.value;const l=$('#clist');if(l)l.innerHTML=clientRows()},
  wDate:el=>{if(el.value&&el.value>=todayStr()){wiz.date=el.value;wiz.start=null;renderWiz()}},
  wQ:el=>{if(wiz.q===el.value)return;wiz.q=el.value;const r=$('#wres');if(r)r.innerHTML=wizResults()},
- wName:el=>{wiz.newName=el.value},wPhone:el=>{wiz.newPhone=el.value},wNotes:el=>{wiz.notes=el.value},wPrice:el=>{wiz.price=el.value},
+ wName:el=>{wiz.q=el.value;wiz.newName=el.value;const r=$('#wsug');if(r)r.innerHTML=wizSug()},wPhone:el=>{wiz.newPhone=el.value},wNotes:el=>{wiz.notes=el.value},wPrice:el=>{wiz.price=el.value},
  blk:(el,ev)=>{if(ev.type!=='change')return;const i=+el.dataset.i,j=+el.dataset.j,b=db.settings.blocks.slice();while(b.length<2)b.push(['','']);
   b[i]=b[i].slice();b[i][j]=el.value;db.settings.blocks=b.filter(x=>x[0]||x[1]);save();render()},
  step:(el,ev)=>{if(ev.type==='change'){db.settings.step=+el.value;save()}},
