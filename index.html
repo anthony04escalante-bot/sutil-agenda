@@ -1,5 +1,11 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}[hidden]:not([hidden=until-found i]){display:none!important}img{max-width:100%}</style>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#F7F5F0">
+<meta name="theme-color" content="#F5F0E6">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Sutil">
@@ -7,9 +13,9 @@
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Salón Spa Sutil by Clara</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Jost:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600;1,700&family=Jost:wght@500;600;700&display=swap">
 <style>
 /* Concepto: spa clásico de lujo en tema claro. Porcelana y blanco, verde bosque como color de marca,
@@ -245,13 +251,306 @@ dialog#sheet::backdrop{background:var(--veil)}
 .cb{width:22px;height:22px;accent-color:var(--accent);flex:none}
 label.rw{cursor:pointer}
 @media (prefers-reduced-motion:reduce){dialog#sheet[open]{animation:none}}
+
+/* ═════ v2 · diseño redondeado, amable y de lectura grande (móvil primero) ═════ */
+:root{
+  --bg:#FBF6EF; --surface:#FFFFFF; --fill:#F2EADF; --ink:#1B2A24; --muted:#4A5851; --line:#EADFD0;
+  --accent:#2C6B58; --accent-soft:#E3F1EB; --gold:#C9A86A; --gold-ink:#6B4F1B;
+  --ok:#2A7A5A; --ok-soft:#DDF1E6; --warn:#7A5410; --warn-soft:#FBEFD2; --bad:#9A3B3B; --bad-soft:#F9E1DE;
+  --off:#4A5851; --off-soft:#EEE9E1;
+  --f-display:'Nunito','Avenir Next',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-body:'Nunito','Avenir Next',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --sh:0 6px 20px rgba(60,45,20,.09); --sh2:0 10px 30px rgba(60,45,20,.16);
+}
+html{-webkit-text-size-adjust:100%}
+body{font:600 18px/1.5 var(--f-body);background:var(--bg)}
+body::before{background:var(--bg)}
+.shell{max-width:600px;padding-bottom:210px}
+body.locked .tabbar,body.locked .fabwrap,body.locked #app{display:none!important}
+.num{font-variant-numeric:tabular-nums}
+
+/* cabecera */
+.top{border-bottom:0;padding:14px 0 10px;margin-bottom:10px}
+.top .sal{font:800 17px/1.2 var(--f-body);font-style:normal;color:var(--accent);letter-spacing:0;gap:10px}
+.top .sal::before{width:46px;height:47px}
+.top h1{font:800 36px/1.1 var(--f-display);margin:8px 0 0}
+.top h1 small{font:700 17px/1.3 var(--f-body);color:var(--muted);margin-top:6px}
+.live{font:800 14px var(--f-body)}
+.live::before{width:10px;height:10px}
+.iconbtn{width:56px;height:56px;border:0;box-shadow:var(--sh);color:var(--accent)}
+.iconbtn .ic{width:26px;height:26px}
+.iconbtn.sm{width:46px;height:46px}
+.todaybtn{height:56px;padding:0 22px;border-radius:28px;border:2px solid var(--gold);background:var(--surface);color:var(--gold-ink);font:800 17px var(--f-body)}
+
+/* chips y segmentos */
+.chip{height:52px;padding:0 20px;border-radius:26px;border:2px solid var(--line);font:800 16px var(--f-body);color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--accent)}
+.seg{border-radius:28px;padding:5px;gap:4px;margin:6px 0 18px;background:var(--fill)}
+.seg button{height:52px;border-radius:24px;font:800 16px var(--f-body);color:var(--muted)}
+.seg button[aria-pressed="true"]{box-shadow:var(--sh)}
+
+/* resumen del día */
+.strip{gap:10px;margin:8px 0 18px}
+.strip div,.strip button{background:var(--surface);border-radius:22px;padding:14px 12px;border:0;box-shadow:var(--sh);text-align:center}
+.strip div:first-child{padding-left:12px}
+.strip b{font:800 36px/1.05 var(--f-display)}
+.strip span{font:700 14px var(--f-body);color:var(--muted)}
+
+/* semana */
+.wk{gap:8px;margin:0 0 16px}
+.wkd{gap:5px}
+.wkb{padding:10px 0 8px;border-radius:20px;border:2px solid transparent;background:var(--surface);box-shadow:var(--sh)}
+.wkb small{font:800 14px var(--f-body)}
+.wkb b{font:800 24px/1.1 var(--f-display)}
+.wkb em{width:7px;height:7px}
+.wkb.td{border-color:var(--gold)}
+.wkb.x{opacity:.55;box-shadow:none;background:transparent}
+
+/* citas */
+.list{gap:14px}
+.appt{border:0;border-radius:26px;box-shadow:var(--sh),inset 8px 0 0 var(--cat,var(--gold));overflow:hidden}
+.appt-main{padding:18px 16px 18px 24px;gap:14px}
+.tm{width:78px}
+.tm b{font:800 26px/1 var(--f-body);letter-spacing:-.02em}
+.tm span{font:800 14px var(--f-body);margin-left:3px}
+.svc{font:800 24px/1.2 var(--f-display)}
+.who{font-size:19px;margin-top:4px}
+.meta{font-size:16px;margin-top:3px}
+.done{width:76px;border-left:0;background:var(--ok-soft);color:var(--ok);border-radius:0}
+.done .ic{width:32px;height:32px;stroke-width:2.4}
+.pill{font:800 14px var(--f-body);padding:7px 12px;border-radius:14px}
+.gap{border:2px dashed var(--gold);border-radius:24px;padding:18px 18px;font-size:18px;min-height:68px;background:rgba(255,255,255,.6)}
+.gap b{font:800 16px var(--f-body);color:var(--accent);background:var(--accent-soft);padding:9px 16px;border-radius:18px}
+.empty{padding:44px 12px}
+.empty h3{font:800 27px/1.2 var(--f-display)}
+.empty p{font-size:18px;max-width:28ch}
+
+/* botones y campos */
+.btn{height:60px;padding:0 26px;border-radius:30px;font:800 18px var(--f-body);box-shadow:var(--sh)}
+.btn.tonal{background:var(--surface);border:2px solid var(--accent);box-shadow:none}
+.btn.ghost{background:var(--surface);border:2px solid var(--line);box-shadow:none}
+.btn.danger{background:var(--surface);border:2px solid var(--bad);box-shadow:none}
+.btn.wa{box-shadow:var(--sh)}
+.field{gap:8px;margin-bottom:18px}
+.field>label,.lbl{font:800 16px var(--f-body);color:var(--muted);letter-spacing:0}
+.in{min-height:60px;padding:12px 18px;border-radius:20px;border:2px solid var(--line);font-size:19px;font-weight:700}
+.in:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(44,107,88,.18)}
+textarea.in{min-height:110px;line-height:1.45}
+.sub{font:800 17px var(--f-body);letter-spacing:0;color:var(--gold-ink);margin:24px 0 10px}
+.check{font-size:19px;min-height:56px}
+.check input,.cb{width:28px;height:28px}
+.note{font-size:16px;line-height:1.5}
+.search .ic{left:18px;top:17px;width:26px;height:26px}
+.search .in{padding-left:56px}
+
+/* listas */
+.rows{border:0;border-radius:26px;box-shadow:var(--sh)}
+.rows>*+*{border-top:2px solid var(--bg)}
+.rw{padding:16px 18px;min-height:76px;gap:14px}
+.rw .t{font-size:19px;font-weight:800}
+.rw .s{font-size:16px}
+.rw .r{font-size:16px}
+.av{width:52px;height:52px;border:0;background:var(--accent-soft);font:800 20px var(--f-display)}
+.dot{width:14px;height:14px}
+.tier{font:800 13px var(--f-body);padding:3px 10px;border-radius:12px}
+
+/* calendario mensual */
+.cal{gap:6px}
+.cal .wd{font:800 15px var(--f-body);letter-spacing:0}
+.cal button{border-radius:20px;border:0;box-shadow:var(--sh);font:800 21px var(--f-body);aspect-ratio:1/1.1}
+.cal button small{font:800 14px var(--f-body)}
+.cal button.x{box-shadow:none}
+.cal button.today{box-shadow:inset 0 0 0 3px var(--gold)}
+.cal button.dayoff{border-radius:20px;box-shadow:none}
+
+/* ingresos */
+.tile{border:0;border-radius:24px;box-shadow:var(--sh)}
+.tile b{font:800 44px/1 var(--f-display)}
+.tile span{font:700 15px var(--f-body)}
+.big{border:0;border-radius:28px;box-shadow:var(--sh);padding:20px 22px}
+.big span{font:800 17px var(--f-body)}
+.big b{font:800 52px/1.1 var(--f-display)}
+.big small{font-size:16px}
+.bars .l{font-size:18px}
+.bars .tr{height:12px;border-radius:6px;overflow:hidden}
+.bars .tr i{border-radius:6px}
+.days i{border-radius:8px 8px 3px 3px}
+.days small{font-size:13px}
+
+/* avisos */
+.demo{border-radius:22px;padding:16px 18px;font-size:17px;font-weight:700}
+.demo button{font-weight:800;font-size:17px}
+.mrow{border:0;border-radius:24px;box-shadow:var(--sh),inset 8px 0 0 var(--gold);padding:18px 18px 18px 24px;min-height:68px}
+.mrow .mt{font:800 18px var(--f-body);letter-spacing:0}
+.mrow .mn{font-size:17px;font-weight:800}
+.mc{border:0;border-radius:24px;padding:18px;box-shadow:var(--sh)}
+.mc-n{font:800 24px/1.2 var(--f-display)}
+.mc-a .btn{height:56px;font-size:15px;padding:0 12px}
+.bubble{border-radius:24px 24px 24px 8px;font-size:18px;padding:16px 18px}
+
+/* barra inferior flotante */
+.tabbar{left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));border:0;border-radius:32px;box-shadow:var(--sh2);padding:6px 6px;background:rgba(255,255,255,.97)}
+.tabbar nav{max-width:600px;grid-template-columns:repeat(4,1fr)}
+.tabbar button{min-height:70px;font:800 14px var(--f-body);letter-spacing:0;gap:4px;border-radius:24px}
+.tabbar button .pl{width:68px;height:36px;border-radius:18px}
+.tabbar button .ic{width:28px;height:28px;stroke-width:1.9}
+.tabbar button[aria-current="page"] .pl{background:var(--accent);color:#fff;box-shadow:none}
+.tabbar button[aria-current="page"]{color:var(--accent)}
+.fabwrap{bottom:calc(98px + env(safe-area-inset-bottom,0px))}
+.fab{height:64px;border-radius:32px;font:800 18px var(--f-body);letter-spacing:0;box-shadow:var(--sh2)}
+.fab.alt{border:2px solid var(--gold);box-shadow:var(--sh2)}
+.fab .ic{width:26px;height:26px}
+.fab .bdg{min-width:26px;height:26px;border-radius:13px;font:800 14px/26px var(--f-body)}
+
+/* hojas */
+dialog#sheet{border-top:0;border-radius:32px 32px 0 0;max-width:600px;max-height:94dvh}
+.grab{width:54px;height:6px;border-radius:3px;margin:12px auto 0}
+.sh-head{padding:14px 22px 8px}
+.sh-head h2{font:800 30px/1.15 var(--f-display)}
+.sh-head p{font-size:17px}
+.sh-head .iconbtn{width:52px;height:52px;box-shadow:none}
+.sh-body{padding:10px 22px 20px}
+.sh-foot{gap:12px;padding:14px 22px calc(18px + env(safe-area-inset-bottom,0px));border-top:2px solid var(--bg)}
+.prog{gap:7px;padding:6px 22px 4px}
+.prog i{height:7px;border-radius:4px}
+.opt{border:2px solid var(--line);border-radius:22px;padding:16px 18px;min-height:72px;font-size:19px;margin-bottom:10px}
+.opt.on{box-shadow:none;border-color:var(--accent)}
+.opt .t{font-weight:800}
+.opt .s{font-size:16px}
+.dstrip{gap:10px}
+.dchip{width:70px;padding:12px 0;border-radius:22px;border:2px solid var(--line);font:800 24px/1.2 var(--f-display)}
+.dchip small{font:800 14px var(--f-body)}
+.slots{gap:10px}
+.slot{height:60px;border-radius:20px;border:2px solid var(--line);font:800 19px var(--f-body)}
+.kv{grid-template-columns:104px 1fr;gap:10px 14px}
+.kv dt{font:800 15px var(--f-body);letter-spacing:0}
+.kv dd{font-size:19px}
+.okmark{width:72px;height:72px}
+.err{font-size:17px;font-weight:700}
+.toast{border-radius:24px;padding:16px 24px;font:800 17px var(--f-body);bottom:calc(112px + env(safe-area-inset-bottom,0px));max-width:calc(100% - 32px);text-align:center}
+
+/* pantalla de clave */
+#lock{position:fixed;inset:0;z-index:60;background:var(--bg);overflow-y:auto;padding:max(20px,env(safe-area-inset-top,0px)) 20px max(20px,env(safe-area-inset-bottom,0px));display:flex}
+#lock[hidden]{display:none}
+.lk{margin:auto;width:100%;max-width:380px;text-align:center}
+.lk-logo{width:92px;height:96px;margin:0 auto 10px;background:var(--logo-mark) center/contain no-repeat}
+.lk h1{font:800 32px/1.15 var(--f-display);margin:6px 0 8px}
+.lk p{margin:0 auto 14px;font-size:18px;color:var(--muted);max-width:30ch}
+.lk .lm{min-height:28px;margin:0 0 6px;font-size:17px;font-weight:800;color:var(--bad)}
+.lk .lm.okm{color:var(--ok)}
+.dots{display:flex;justify-content:center;gap:14px;margin:6px 0 16px;min-height:22px}
+.dots i{width:20px;height:20px;border-radius:50%;border:3px solid var(--accent);background:transparent}
+.dots i.on{background:var(--accent)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:320px;margin:0 auto}
+.pad button{height:76px;border-radius:38px;background:var(--surface);box-shadow:var(--sh);font:800 32px var(--f-body);text-align:center;color:var(--ink);display:grid;place-items:center}
+.pad button:active{background:var(--accent-soft)}
+.pad button.fn{background:transparent;box-shadow:none;font-size:26px;color:var(--accent)}
+.pad button.go{background:var(--accent);color:#fff;font-size:30px}
+.pad button[disabled]{opacity:.35}
+.lk .small{margin-top:18px;font-size:15px}
+
+@media (max-width:380px){
+  .top h1{font-size:32px}
+  .svc{font-size:22px}
+  .tm{width:70px}
+  .tm b{font-size:23px}
+  .mc-a .btn{font-size:13.5px}
+}
+@media (min-width:700px){.tabbar{left:50%;right:auto;width:600px;transform:translateX(-50%)}}
+
+/* ═════ v3 · paleta salvia y arena + tipografía serif cursiva ═════ */
+:root{
+  --p1:#828F73; --p2:#A5AB8F; --p3:#B8A98F; --p4:#CCBCAA; --p5:#DDD2C0;
+  --bg:#F5F0E6; --surface:#FDFBF7; --fill:#DDD2C0; --line:#E4DACA; --ink:#24291F; --muted:#4F5645;
+  --accent:#5F6E52; --accent-soft:#E4E8DA; --gold:#B8A98F; --gold-ink:#5D4E33;
+  --ok:#4D6B48; --ok-soft:#E2E9D8; --warn:#6B4F17; --warn-soft:#F1E6CB; --bad:#8E4339; --bad-soft:#F3DFD8;
+  --veil:rgba(60,66,48,.45);
+  --f-display:'Playfair Display','Cormorant Garamond',Georgia,serif;
+  --f-body:'Jost','Avenir Next',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --sh:0 6px 20px rgba(80,72,50,.10); --sh2:0 10px 30px rgba(80,72,50,.18);
+}
+body{font:500 19px/1.5 var(--f-body);font-variant-numeric:lining-nums;background:var(--bg)}
+body::before{background:var(--bg)}
+.top h1,.svc,.sh-head h2,.strip b,.tile b,.big b,.mc-n,.empty h3,.lk h1,.dchip,.wkb b,.av,.tm b{font-family:var(--f-display);font-style:italic;font-weight:700;font-variant-numeric:lining-nums}
+.top h1{font-size:40px;line-height:1.1}
+.top h1 small{font:500 18px/1.3 var(--f-body);font-style:normal;letter-spacing:.02em}
+.top .sal{font:600 17px/1.2 var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.svc{font-size:26px;line-height:1.2}
+.tm b{font-size:28px;font-style:italic}
+.strip b{font-size:40px}.tile b{font-size:46px}.big b{font-size:54px}
+.sh-head h2{font-size:32px}.empty h3{font-size:29px}.mc-n{font-size:26px}
+.dchip{font-size:26px}.wkb b{font-size:26px}.av{font-size:22px;background:var(--p5);color:var(--accent)}
+.lk h1{font-size:38px}
+.btn,.chip,.seg button,.todaybtn,.tabbar button,.fab,.pill,.gap b,.toast,.pad button,.slot,.field>label,.sub,.cal button,.cal .wd{font-family:var(--f-body)}
+.btn,.fab{font-weight:700;letter-spacing:.02em}
+.sub{font-weight:700;letter-spacing:.04em;color:var(--gold-ink)}
+.field>label,.lbl{font-weight:600;letter-spacing:.02em}
+.rw .t,.opt .t{font-weight:700}
+.in{font-weight:600}
+/* paleta en uso */
+.seg{background:var(--p5)}
+.seg button[aria-pressed="true"],.chip[aria-pressed="true"]{background:var(--accent);color:#fff}
+.todaybtn{border-color:var(--p3)}
+.gap{border-color:var(--p3);background:rgba(221,210,192,.28)}
+.gap b{background:var(--p5);color:var(--accent)}
+.strip div,.strip button{border-top:6px solid var(--p2)}
+.strip div:nth-child(2){border-top-color:var(--p3)}
+.strip div:nth-child(3),.strip button{border-top-color:var(--p1)}
+.tile{border-top:6px solid var(--p2)}
+.tile:nth-child(2){border-top-color:var(--p3)}.tile:nth-child(3){border-top-color:var(--p4)}.tile:nth-child(4){border-top-color:var(--p1)}
+.big{border-top:8px solid var(--p1)}
+.mrow{box-shadow:var(--sh),inset 8px 0 0 var(--p3)}
+.bars .tr{background:var(--p5)}.bars .tr i{background:var(--p1)}
+.days i{background:var(--p1)}.days i.z{background:var(--p5)}
+.wkb.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.wkb em.has{background:var(--p1)}
+.wkb.td{border-color:var(--p3)}
+.cal button.sel,.dchip.on,.slot.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cal button.today{box-shadow:inset 0 0 0 3px var(--p3)}
+.cal button.dayoff{background:repeating-linear-gradient(135deg,var(--p5) 0 7px,var(--surface) 7px 14px)}
+.tabbar{background:rgba(253,251,247,.97)}
+.tabbar button[aria-current="page"] .pl{background:var(--p1);color:#fff}
+.tabbar button[aria-current="page"]{color:var(--accent)}
+.tier.Plata{background:var(--p4);color:#3F3A30}.tier.Oro{background:var(--p3);color:#3A2F17}
+.demo{background:var(--p5);color:#4A3F25}
+.bubble{background:#E6EBDC;border-color:var(--p2)}
+.btn.wa{background:var(--accent);border-color:var(--accent)}
+.fab.alt{border-color:var(--p3)}
+.okmark{background:var(--ok-soft)}
+/* círculos de la paleta */
+.pal{display:flex;justify-content:center;gap:10px;margin:0 auto 14px}
+.pal i{width:28px;height:28px;border-radius:50%;display:block}
+.pal i:nth-child(1){background:var(--p1)}.pal i:nth-child(2){background:var(--p2)}.pal i:nth-child(3){background:var(--p3)}.pal i:nth-child(4){background:var(--p4)}.pal i:nth-child(5){background:var(--p5)}
+.dots i{border-color:var(--p1)}.dots i.on{background:var(--accent);border-color:var(--accent)}
+.pad button{font-family:var(--f-display);font-weight:700}
+.pad button.fn{font-family:var(--f-body)}
+.pad button.go{background:var(--accent)}
+
+/* ajustes finos móvil */
+.appt-main{display:grid;grid-template-columns:78px 1fr;align-items:start;column-gap:14px}
+.appt-main .pill{grid-column:2;justify-self:start;margin-top:8px}
+.svc{overflow-wrap:break-word;word-break:normal;hyphens:manual}
+.wkb small{font-size:13px}.wkb b{font-size:23px}
+.wk{gap:4px}.iconbtn.sm{width:40px;height:40px}
+.fabwrap div{gap:10px;padding:0 var(--gut)}
+.fab{flex:1 1 0;min-width:0;padding:0 14px}
+.fab.alt{flex:0 0 auto;padding:0 18px;gap:8px}
+@media (max-width:430px){.fab.alt span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.fab.alt{width:64px;padding:0;justify-content:center}.fab .bdg{position:absolute;top:-4px;right:-2px}}
+.strip div,.strip button{padding:14px 8px}
+.strip span{font-size:13px}
+.strip span{line-height:1.25}
+.appt-main .pill{margin-top:4px}
+.seg button{font-size:15px;padding:0 2px}
 </style>
 
+</head>
+<body>
 <div id="app"></div>
-<div class="fabwrap" id="fabwrap" hidden><div><button class="fab alt" type="button" data-act="maint" id="fabm"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg><span>Mantenimiento</span><i class="bdg" id="fabn" hidden></i></button><button class="fab" type="button" data-act="newAppt"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nueva cita</button></div></div>
+<div class="fabwrap" id="fabwrap" hidden><div><button class="fab alt" type="button" data-act="maint" id="fabm" aria-label="Mantenimiento"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg><span>Mantenimiento</span><i class="bdg" id="fabn" hidden></i></button><button class="fab" type="button" data-act="newAppt"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nueva cita</button></div></div>
 <div class="tabbar"><nav id="tabs" aria-label="Secciones"></nav></div>
 <dialog id="sheet" aria-labelledby="shtitle"></dialog>
 <div id="toast" class="toast" role="status" hidden></div>
+<div id="lock" hidden></div>
 
 <script>
 'use strict';
@@ -334,7 +633,8 @@ function migrate(d){if((d.v||1)<2){d.v=1;d.services.forEach(s=>{delete s.price})
  d.v=5;
  return d}
 function load(){try{const r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);if(d&&Array.isArray(d.services)&&Array.isArray(d.appts))return migrate(d)}}catch(e){}return null}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){memOnly=true}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){memOnly=true}
+ if(sync.mode==='cloud'){sync.dirty=true;try{localStorage.setItem(DIRTY,'1')}catch(e){}clearTimeout(sync.timer);sync.timer=setTimeout(push,700)}}
 
 /* ───────── lógica de agenda ───────── */
 const active=s=>s==='confirmed'||s==='completed';
@@ -379,7 +679,7 @@ const isOpenNow=()=>{const n=new Date();if(!isOpenDay(todayStr()))return false;c
 const visits=cid=>db.appts.filter(a=>a.clientId===cid&&a.status==='completed').length;
 const TIERS=[{n:'Bronce',min:0},{n:'Plata',min:5},{n:'Oro',min:10}];
 function tierOf(p){let t=TIERS[0];for(const x of TIERS)if(p>=x.min)t=x;return{t,nx:TIERS.find(x=>x.min>p)}}
-const CATCOL=['#5E7F6E','#B49A5E','#B07A7A','#6C7F99','#8B6F8F','#9A8F6E'];
+const CATCOL=['#828F73','#A5AB8F','#B8A98F','#CCBCAA','#6F7C62','#DDD2C0'];
 const catColor=c=>{const cats=[...new Set(db.services.map(s=>s.cat))];return CATCOL[Math.max(0,cats.indexOf(c))%CATCOL.length]};
 function waDigits(p){let d=String(p||'').replace(/\D/g,'');if(d.startsWith('00'))d=d.slice(2);if(d.length===8)d=db.settings.cc+d;return d}
 const waOk=p=>{const d=waDigits(p);return d.length>=10&&d.length<=15};
@@ -413,7 +713,11 @@ function toast(m){toastEl.textContent=m;toastEl.hidden=false;clearTimeout(toastT
 
 /* ───────── vistas ───────── */
 function demoBanner(){return db.demo?`<div class="demo"><span>Datos de ejemplo.</span><button type="button" data-act="demoClear">Empezar de cero</button></div>`:''}
-function memBanner(){return memOnly?`<div class="demo"><span>Este navegador no permite guardar. Los cambios se pierden al cerrar.</span></div>`:''}
+function memBanner(){
+ if(memOnly)return `<div class="demo"><span>Este navegador no permite guardar. Los cambios se pierden al cerrar.</span></div>`;
+ if(sync.mode==='local')return `<div class="demo"><span>Falta activar el guardado en la nube. Por ahora los datos solo están en este teléfono.</span></div>`;
+ if(sync.mode==='cloud'&&(sync.dirty||sync.state==='offline'))return `<div class="demo"><span>Sin conexión. Tus cambios están guardados aquí y se subirán solos.</span></div>`;
+ return ''}
 
 function apptCard(a){
  const s=svcById(a.serviceId),c=clientById(a.clientId),st=staffById(a.staffId),[h,ap]=t12(a.start).split(' ');
@@ -532,8 +836,10 @@ function vSalon(){
    <button type="button" class="btn ghost block" data-act="msgReset">Restablecer mensajes</button>`;
  }else{
   const s=db.settings;
-  body=`<div class="lockup" role="img" aria-label="Sutil, estudio by Clara"></div><div class="field"><label for="sn">Nombre del salón</label><input class="in" id="sn" value="${esc(s.name)}" data-in="sname"></div>
-   <div class="sub">Copia de seguridad</div><p class="note" style="margin:0 0 10px">Tus datos se guardan solo en este teléfono. Haz una copia de vez en cuando.</p>
+  body=`<div class="pal" aria-hidden="true" style="margin:0 0 6px"><i></i><i></i><i></i><i></i><i></i></div><div class="lockup" role="img" aria-label="Sutil, estudio by Clara"></div><div class="field"><label for="sn">Nombre del salón</label><input class="in" id="sn" value="${esc(s.name)}" data-in="sname"></div>
+   <div class="sub">Copia de seguridad</div><p class="note" style="margin:0 0 10px">${syncLabel()}</p>
+    ${sync.mode==='cloud'?`<div class="acts" style="margin-bottom:14px"><button type="button" class="btn tonal block" data-act="syncNow">Revisar ahora</button><button type="button" class="btn ghost block" data-act="pinAsk">Cambiar mi clave</button><button type="button" class="btn ghost block" data-act="logout">Cerrar sesión en este teléfono</button></div>`:''}
+    <div class="sub">Copia extra</div><p class="note" style="margin:0 0 10px">Además, puedes guardar una copia en una nota.</p>
    <div class="acts"><button type="button" class="btn tonal block" data-act="backup">Copiar copia de seguridad</button><button type="button" class="btn ghost block" data-act="restore">Restaurar copia</button>
    <button type="button" class="btn danger block" data-act="wipeAsk">Borrar todos los datos</button></div>`;
  }
@@ -732,7 +1038,7 @@ const A={
   const ph=(f.get('phone')||'').trim();if(ph&&!waOk(ph)){ferr('Escribe el número completo de WhatsApp.');return}
   const rec={name,phone:ph,notes:(f.get('notes')||'').trim()};
   if(d.id)Object.assign(clientById(d.id),rec);else db.clients.push(Object.assign({id:uid()},rec));closeSheet();after('Cliente guardado')},
- clientDel:d=>{db.clients=db.clients.filter(c=>c.id!==d.id);closeSheet();after('Cliente eliminado')},
+ clientDel:d=>{if(!confirm('¿Eliminar este cliente?'))return;db.clients=db.clients.filter(c=>c.id!==d.id);closeSheet();after('Cliente eliminado')},
  /* servicios y equipo */
  svc:d=>serviceSheet(d.id),svcNew:()=>serviceSheet(null),
  svcSave:d=>{const f=fdata(),name=(f.get('name')||'').trim(),cat=(f.get('cat')||'').trim()||'Otros';
@@ -740,7 +1046,7 @@ const A={
   const rec={name,cat,dur:+f.get('dur'),maint:+f.get('maint')||0,active:f.get('active')==='on'};
   if(d.id)Object.assign(svcById(d.id),rec);else{const id='s'+uid();db.services.push(Object.assign({id},rec));db.staff.forEach(s=>s.services.push(id))}
   closeSheet();after('Servicio guardado')},
- svcDel:d=>{db.services=db.services.filter(s=>s.id!==d.id);db.staff.forEach(s=>{s.services=s.services.filter(x=>x!==d.id)});closeSheet();after('Servicio eliminado')},
+ svcDel:d=>{if(!confirm('¿Eliminar este servicio?'))return;db.services=db.services.filter(s=>s.id!==d.id);db.staff.forEach(s=>{s.services=s.services.filter(x=>x!==d.id)});closeSheet();after('Servicio eliminado')},
  dayTog:d=>{const n=+d.d,l=db.settings.daysOpen;db.settings.daysOpen=l.includes(n)?l.filter(x=>x!==n):[...l,n];after()},
  /* datos */
  backup:()=>{const json=JSON.stringify(db);
@@ -749,8 +1055,21 @@ const A={
   try{navigator.clipboard.writeText(t.value).then(()=>{ferr('Copiado. Pégalo donde lo guardes.')},fb)}catch(e){fb()}},
  restore:()=>openSheet(`${head('Restaurar copia')}<div class="sh-body"><p class="note" style="margin:0 0 10px">Pega aquí el texto de tu copia. Reemplaza los datos actuales.</p><textarea class="in" id="rs" style="min-height:160px;font-size:13px"></textarea><p class="err" id="ferr" role="alert"></p></div><div class="sh-foot"><button type="button" class="btn" data-act="rsOk">Restaurar</button></div>`),
  rsOk:()=>{try{const d=JSON.parse($('#rs').value);if(!d||!Array.isArray(d.services)||!Array.isArray(d.staff)||!Array.isArray(d.clients)||!Array.isArray(d.appts)||!d.settings)throw 0;db=migrate(d);closeSheet();after('Datos restaurados')}catch(e){ferr('El texto no es una copia válida.')}},
- wipeAsk:()=>openSheet(`${head('¿Borrar todo?')}<div class="sh-body"><p style="margin:0">Se eliminan citas, clientes, ajustes de este teléfono. No se puede deshacer.</p></div><div class="sh-foot"><button type="button" class="btn ghost" data-act="closeSheet">Cancelar</button><button type="button" class="btn danger" data-act="wipeDo">Borrar todo</button></div>`),
- wipeDo:()=>{db=baseDb();closeSheet();after('Datos borrados')}
+ wipeAsk:()=>openSheet(`${head('¿Borrar todo?')}<div class="sh-body"><p style="margin:0 0 12px">Se eliminan todas las citas, clientes y ajustes, en todos tus celulares.</p><div class="field"><label for="wp">Para confirmar, escribe BORRAR</label><input class="in" id="wp" autocomplete="off" autocapitalize="characters"></div><p class="err" id="ferr" role="alert"></p></div><div class="sh-foot"><button type="button" class="btn ghost" data-act="closeSheet">Cancelar</button><button type="button" class="btn danger" data-act="wipeDo">Borrar todo</button></div>`),
+ wipeDo:()=>{if((($('#wp')||{}).value||'').trim().toUpperCase()!=='BORRAR'){ferr('Escribe la palabra BORRAR para confirmar.');return}db=baseDb();closeSheet();after('Datos borrados')},
+ syncNow:async()=>{if(sync.mode!=='cloud')return;toast('Revisando…');await push();await pull(true);toast(sync.state==='ok'&&!sync.dirty?'Todo guardado en la nube':'Sin conexión por ahora')},
+ logout:async()=>{if(!confirm('¿Cerrar sesión en este teléfono? Tus datos siguen guardados en la nube.'))return;
+  await api('logout','POST');try{localStorage.removeItem(TOK);localStorage.removeItem(KEY);localStorage.removeItem(REV);localStorage.removeItem(DIRTY)}catch(e){}
+  sync.mode='init';closeSheet();showLock('login')},
+ pinAsk:()=>openSheet(`${head('Cambiar mi clave')}<form id="f" class="sh-body" onsubmit="return false"><div class="field"><label for="p0">Clave actual</label><input class="in" id="p0" name="p0" type="password" inputmode="numeric" maxlength="8" autocomplete="off"></div><div class="field"><label for="p1">Clave nueva (4 a 8 números)</label><input class="in" id="p1" name="p1" type="password" inputmode="numeric" maxlength="8" autocomplete="off"></div><div class="field"><label for="p2">Repite la clave nueva</label><input class="in" id="p2" name="p2" type="password" inputmode="numeric" maxlength="8" autocomplete="off"></div><p class="err" id="ferr" role="alert"></p></form><div class="sh-foot"><button type="button" class="btn" data-act="pinDo">Guardar clave</button></div>`),
+ pinDo:async()=>{const f=fdata(),a=f.get('p0'),b=f.get('p1'),c=f.get('p2');
+  if(!/^\d{4,8}$/.test(b||'')){ferr('La clave nueva debe tener de 4 a 8 números.');return}
+  if(b!==c){ferr('Las claves nuevas no coinciden.');return}
+  const r=await api('changepin','POST',{pin:a,next:b});
+  if(r.status===200&&r.j.token){try{localStorage.setItem(TOK,r.j.token)}catch(e){}closeSheet();toast('Clave cambiada. En los otros celulares pedirá la nueva.')}
+  else if(r.status===401)ferr(r.j.left!=null?`Clave actual incorrecta. Te quedan ${r.j.left} intentos.`:'Clave actual incorrecta.');
+  else if(r.status===429)ferr(`Demasiados intentos. Espera ${r.j.locked} minutos.`);
+  else ferr('No hay conexión. Inténtalo de nuevo.')}
 };
 function maintSheet(){
  const l=maintDue();
@@ -829,6 +1148,115 @@ document.addEventListener('click',e=>{const w=e.target.closest('[data-wa]');if(w
 ['input','change'].forEach(ev=>document.addEventListener(ev,e=>{const t=e.target.closest&&e.target.closest('[data-in]');if(!t)return;const f=I[t.dataset.in];if(f)f(t,e)}));
 
 /* ───────── arranque ───────── */
-db=load()||buildDemo();save();render();
+
+/* ───────── clave de acceso y sincronización ───────── */
+const TOK='salon.token.v1',REV='salon.rev.v1',DIRTY='salon.dirty.v1';
+const sync={mode:'init',rev:0,dirty:false,busy:false,timer:null,state:'ok'};
+const lockEl=$('#lock');
+const lsGet=k=>{try{return localStorage.getItem(k)||''}catch(e){return''}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+const tok=()=>lsGet(TOK);
+function syncLabel(){
+ if(sync.mode==='local')return 'Guardado solo en este teléfono. Falta activar el guardado en la nube.';
+ if(sync.dirty||sync.state==='offline')return 'Sin conexión. Los cambios se subirán solos al volver internet.';
+ return 'Guardado en la nube. Si abres la app en otro celular con tu clave, verás lo mismo.'}
+async function api(a,method,body){
+ const h={'content-type':'application/json'},t=tok();if(t)h.authorization='Bearer '+t;
+ const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),12000);
+ try{const r=await fetch('/api/state?a='+encodeURIComponent(a||'')+(a===''&&method==='GET'&&sync.rev?'&rev='+sync.rev:''),{method:method||'GET',headers:h,body:body?JSON.stringify(body):undefined,signal:ctl.signal,cache:'no-store'});
+  let j={};try{j=await r.json()}catch(e){j=null}
+  return{status:r.status,j:j||{},nojson:j===null}}
+ catch(e){return{status:0,j:{}}}finally{clearTimeout(to)}}
+function mergeDb(srv,loc){
+ const out=migrate(JSON.parse(JSON.stringify(srv)));
+ ['services','clients','appts'].forEach(k=>{const m=new Map(out[k].map(x=>[x.id,x]));(loc[k]||[]).forEach(x=>m.set(x.id,x));out[k]=[...m.values()]});
+ out.settings=loc.settings||out.settings;out.maint={...(out.maint||{}),...(loc.maint||{})};out.demo=false;return out}
+async function push(){
+ if(sync.mode!=='cloud'||sync.busy||!sync.dirty)return;
+ sync.busy=true;sync.dirty=false;
+ const r=await api('','PUT',{rev:sync.rev,data:db});
+ sync.busy=false;
+ if(r.status===200){sync.rev=r.j.rev;lsSet(REV,String(sync.rev));sync.state='ok';
+  if(sync.dirty)push();else{try{localStorage.removeItem(DIRTY)}catch(e){}if(ui.tab==='agenda'||ui.tab==='salon')paintKeep()}}
+ else if(r.status===409&&r.j.data){db=mergeDb(r.j.data,db);sync.rev=r.j.rev;lsSet(REV,String(sync.rev));sync.dirty=true;save();if(!sheet.open)render();toast('Se unieron los cambios hechos en otro celular')}
+ else if(r.status===401){sync.dirty=true;showLock('login')}
+ else{sync.dirty=true;sync.state='offline';clearTimeout(sync.timer);sync.timer=setTimeout(push,20000);if(!sheet.open&&ui.tab==='agenda')render()}}
+function paintKeep(){if(!sheet.open&&!(document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)))render()}
+async function pull(force){
+ if(sync.mode!=='cloud'||sync.busy||sync.dirty)return;
+ if(!force&&(sheet.open||(document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))))return;
+ const r=await api('','GET');
+ if(r.status===200&&r.j.data&&r.j.rev!==sync.rev&&!sync.dirty){db=migrate(r.j.data);sync.rev=r.j.rev;lsSet(REV,String(sync.rev));sync.state='ok';try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}if(!sheet.open)render();toast('Datos actualizados desde otro celular')}
+ else if(r.status===200){sync.state='ok'}
+ else if(r.status===401)showLock('login');
+ else if(r.status===0)sync.state='offline'}
+function enter(){lockEl.hidden=true;lockEl.innerHTML='';document.body.classList.remove('locked');render()}
+
+/* pantalla de clave */
+const L={mode:'login',pin:'',first:'',msg:'',ok:false,busy:false,seed:null};
+function showLock(mode,msg){L.mode=mode;L.pin='';L.first='';L.msg=msg||'';L.ok=false;document.body.classList.add('locked');lockEl.hidden=false;sheet.close&&sheet.open&&sheet.close();drawLock()}
+function drawLock(){
+ const T={login:['Bienvenida','Escribe tu clave para entrar.'],setup:['Crea tu clave','Elige de 4 a 8 números. La usarás en cada celular donde abras la app.'],setup2:['Repite tu clave','Escríbela otra vez para confirmar.']}[L.mode];
+ const n=Math.max(4,L.pin.length);
+ lockEl.innerHTML=`<div class="lk"><div class="pal" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><div class="lk-logo" role="img" aria-label="Sutil by Clara"></div><h1>${T[0]}</h1><p>${T[1]}</p>
+  <div class="dots" aria-hidden="true">${Array.from({length:n},(_,i)=>`<i class="${i<L.pin.length?'on':''}"></i>`).join('')}</div>
+  <p class="lm ${L.ok?'okm':''}" role="alert">${esc(L.msg)}</p>
+  <div class="pad">${[1,2,3,4,5,6,7,8,9].map(k=>`<button type="button" data-lk="${k}" aria-label="${k}">${k}</button>`).join('')}
+   <button type="button" class="fn" data-lk="del" aria-label="Borrar un número">⌫</button><button type="button" data-lk="0" aria-label="0">0</button>
+   <button type="button" class="go" data-lk="go" aria-label="Entrar" ${L.pin.length<4||L.busy?'disabled':''}>✓</button></div></div>`}
+lockEl.addEventListener('click',async e=>{
+ const b=e.target.closest('[data-lk]');if(!b||L.busy)return;const k=b.dataset.lk;
+ if(k==='del'){L.pin=L.pin.slice(0,-1);L.msg='';drawLock();return}
+ if(k==='go'){await lockGo();return}
+ if(L.pin.length<8){L.pin+=k;L.msg='';drawLock()}});
+async function lockGo(){
+ if(L.pin.length<4)return;
+ if(L.mode==='setup'){L.first=L.pin;L.pin='';L.mode='setup2';L.msg='';drawLock();return}
+ if(L.mode==='setup2'){
+  if(L.pin!==L.first){L.mode='setup';L.pin='';L.first='';L.msg='Las claves no coinciden. Inténtalo de nuevo.';drawLock();return}
+  L.busy=true;L.msg='Guardando…';L.ok=true;drawLock();
+  const seed=L.seed||db;const r=await api('setup','POST',{pin:L.pin,data:seed});L.busy=false;
+  if(r.status===200&&r.j.token){lsSet(TOK,r.j.token);sync.mode='cloud';sync.rev=r.j.rev||0;lsSet(REV,String(sync.rev));sync.dirty=false;db=seed;save();sync.dirty=!r.j.rev;if(sync.dirty)push();enter();toast('Clave creada. Tus datos ya están en la nube.')}
+  else if(r.status===409){L.mode='login';L.pin='';L.msg='Ya hay una clave creada. Escríbela para entrar.';L.ok=false;drawLock()}
+  else{L.mode='setup';L.pin='';L.first='';L.msg='No hay conexión. Inténtalo de nuevo.';L.ok=false;drawLock()}
+  return}
+ L.busy=true;L.msg='Entrando…';L.ok=true;drawLock();
+ const r=await api('login','POST',{pin:L.pin});L.busy=false;
+ if(r.status===200&&r.j.token){lsSet(TOK,r.j.token);await openCloud(true)}
+ else if(r.status===401){L.pin='';L.ok=false;L.msg=r.j.left!=null?`Clave incorrecta. Te quedan ${r.j.left} intentos.`:'Clave incorrecta.';drawLock()}
+ else if(r.status===429){L.pin='';L.ok=false;L.msg=`Demasiados intentos. Espera ${r.j.locked} minutos.`;drawLock()}
+ else{L.pin='';L.ok=false;L.msg='No hay conexión. Inténtalo de nuevo.';drawLock()}}
+
+async function openCloud(fresh){
+ const local=load(),wasDirty=!!lsGet(DIRTY),g=await api('','GET');
+ if(g.status===200){
+  sync.mode='cloud';sync.state='ok';
+  if(g.j.data){
+   sync.rev=g.j.rev;
+   if(wasDirty&&local&&!fresh){db=mergeDb(g.j.data,local);sync.dirty=true;save()}
+   else{db=migrate(g.j.data);try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
+  }else{db=local||buildDemo();sync.rev=0;sync.dirty=true;save()}
+  lsSet(REV,String(sync.rev));enter();return}
+ if(g.status===401){showLock('login',fresh?'':'Escribe tu clave para entrar.');return}
+ if(g.status===0&&tok()&&local){db=local;sync.mode='cloud';sync.rev=+lsGet(REV)||0;sync.state='offline';sync.dirty=!!wasDirty;enter();return}
+ showLock('login','No hay conexión. Inténtalo de nuevo.')}
+
+async function boot(){
+ const local=load(),st=await api('status','GET');
+ if(st.status===200&&!st.nojson&&typeof st.j.setup==='boolean'){
+  if(st.j.setup){L.seed=local||buildDemo();db=L.seed;showLock('setup');return}
+  if(tok()){await openCloud(false);return}
+  showLock('login');return}
+ if(st.status===0&&tok()&&local){db=local;sync.mode='cloud';sync.rev=+lsGet(REV)||0;sync.state='offline';sync.dirty=!!lsGet(DIRTY);enter();return}
+ if(st.status===0){db=local||buildDemo();sync.mode='local';save();enter();return}
+ /* sin servidor (todavía no se activó la base de datos) */
+ db=local||buildDemo();sync.mode='local';save();enter()}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){push();pull()}});
+window.addEventListener('online',()=>{sync.state='ok';push();pull()});
+setInterval(()=>{if(document.visibilityState==='visible')pull()},30000);
+document.body.classList.add('locked');
+boot();
 </script>
 <script>if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('sw.js').catch(()=>{})}</script>
+</body>
+</html>
