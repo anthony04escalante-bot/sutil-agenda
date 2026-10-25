@@ -1380,6 +1380,10 @@ async function openCloud(fresh){
   if(g.j.data){
    sync.rev=g.j.rev;
    if(wasDirty&&local&&!fresh){db=mergeDb(g.j.data,local);sync.dirty=true;save()}
+   else if(local&&!local.demo&&((local.clients||[]).length||(local.appts||[]).length)){
+    /* este celular ya tiene datos reales: se unen con los de la nube, nunca se pisan */
+    try{localStorage.setItem('salon.prev.v1',JSON.stringify(local))}catch(e){}
+    db=mergeDb(g.j.data,local);sync.dirty=true;save()}
    else{db=migrate(g.j.data);try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
   }else{db=local||buildDemo();sync.rev=0;sync.dirty=true;save()}
   lsSet(REV,String(sync.rev));enter();return}
