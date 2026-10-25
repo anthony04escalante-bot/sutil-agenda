@@ -664,6 +664,11 @@ function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t
 const DEFMSG={
  confirm:'✨ *{salon}* ✨\n\nHola {nombre}, su cita ha sido *programada*:\n\n📅 *Día:* {fecha}\n🕐 *Hora:* {hora}\n💆 *Servicio:* {servicio}\n\nLe esperamos para que disfrute un momento de calma y cuidado. Si necesita cambiar su cita, avísenos por este medio con tiempo.\n\n¡Gracias por elegirnos! 🌿',
  maint:'🌿 *{salon}*\n\nHola {nombre}, ya es momento del mantenimiento de su {servicio}. Para mantenerlo siempre perfecto, le sugerimos agendar su próxima cita.\n\nResponda a este mensaje y le reservamos su horario. ✨'};
+const SORRY_TAIL='\n\nOfrezco mis más sinceras disculpas por el inconveniente. ¿Le parece si reprogramamos su cita para otro día? Con gusto le reservo el horario que mejor le convenga. 🙏\n\n¡Gracias por su comprensión!';
+const SORRY_HEAD='🌿 *{salon}*\n\nHola {nombre}, soy Clara. Le escribo con mucha pena: lamentablemente *no podré atenderle el {fecha} a las {hora}* (cita de {servicio}) ';
+DEFMSG.sorryMal=SORRY_HEAD+'porque no me siento bien de salud.'+SORRY_TAIL;
+DEFMSG.sorryComp=SORRY_HEAD+'porque me surgió otro compromiso que no puedo mover.'+SORRY_TAIL;
+DEFMSG.sorryImp=SORRY_HEAD+'por una situación imprevista que no me lo permite.'+SORRY_TAIL;
 const OLDMSG={confirm:'Hola {nombre}, su cita fue programada para el día {fecha}, a las {hora}, para el servicio de {servicio}. Le esperamos en {salon}. ¡Gracias!',maint:'Hola {nombre}, te escribimos de {salon}. Ya es momento del mantenimiento de tu {servicio}. ¿Te agendamos una cita? Responde a este mensaje y te reservamos tu horario.'};
 const OWNER=()=>({id:'owner',name:'Clara',phone:'',active:true,services:[]});
 function baseDb(){
@@ -695,7 +700,7 @@ function migrate(d){if((d.v||1)<2){d.v=1;d.services.forEach(s=>{delete s.price})
   d.services.forEach(x=>{if(x.maint==null)x.maint=M[x.name]||0});d.maint=d.maint||{};d.settings.msg=d.settings.msg||{...DEFMSG};d.v=3}
  if(d.v<5){const OLD='Hola {nombre}, te escribimos de {salon}. Tu cita de {servicio} es el {fecha} a las {hora}. ¿Nos confirmas tu asistencia? Responde SÍ para confirmar. ¡Gracias!';if(d.settings.msg&&d.settings.msg.confirm===OLD)d.settings.msg.confirm=DEFMSG.confirm;d.v=Math.min(d.v,4)}
  if(d.v<4){d.staff=[OWNER()];d.appts.forEach(a=>{a.staffId='owner'});d.settings.off=d.settings.off||[];d.v=4}
- if(d.settings.msg){if(d.settings.msg.confirm===OLDMSG.confirm)d.settings.msg.confirm=DEFMSG.confirm;if(d.settings.msg.maint===OLDMSG.maint)d.settings.msg.maint=DEFMSG.maint}
+ if(d.settings.msg){['sorryMal','sorryComp','sorryImp'].forEach(k=>{if(!d.settings.msg[k])d.settings.msg[k]=DEFMSG[k]});if(d.settings.msg.confirm===OLDMSG.confirm)d.settings.msg.confirm=DEFMSG.confirm;if(d.settings.msg.maint===OLDMSG.maint)d.settings.msg.maint=DEFMSG.maint}
  d.v=5;if(!d.settings.phone)d.settings.phone='60435416';
  return d}
 function load(){try{const r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);if(d&&Array.isArray(d.services)&&Array.isArray(d.appts))return migrate(d)}}catch(e){}return null}
@@ -909,13 +914,15 @@ function vSalon(){
    <div class="field"><textarea class="in" id="m1" data-in="mconfirm" aria-label="Mensaje de cita programada" style="min-height:260px">${esc(s.msg.confirm)}</textarea></div>
    <div class="sub">Mensaje de mantenimiento</div>
    <div class="field"><textarea class="in" id="m2" data-in="mmaint" aria-label="Mensaje de mantenimiento" style="min-height:200px">${esc(s.msg.maint)}</textarea></div>
+   <div class="sub">Cuando yo no puedo atender</div>
+   ${[['sorryMal','Me siento mal'],['sorryComp','Otro compromiso'],['sorryImp','Imprevisto personal']].map(([k,l])=>`<div class="field"><label for="ms${k}">${l}</label><textarea class="in" id="ms${k}" data-in="msorry" data-k="${k}" style="min-height:200px">${esc(s.msg[k]||DEFMSG[k])}</textarea></div>`).join('')}
    <p class="note" style="margin:-6px 0 10px">Puedes usar {nombre}, {servicio}, {fecha}, {hora} y {salon}. Se reemplazan solos al enviar.</p>
    <button type="button" class="btn ghost block" data-act="msgReset">Restablecer mensajes</button>`;
  }else{
   const s=db.settings;
   body=`<div class="lockup" role="img" aria-label="Sutil, estudio by Clara"></div><div class="field"><label for="sn">Nombre del salón</label><input class="in" id="sn" value="${esc(s.name)}" data-in="sname"></div>
    <div class="sub">Copia de seguridad</div><p class="note" style="margin:0 0 10px">${syncLabel()}</p>
-    <p class="note" style="margin:0 0 8px">Versión de la app: v9</p>${sync.mode==='cloud'?`<div class="acts" style="margin-bottom:14px"><button type="button" class="btn tonal block" data-act="syncNow">Revisar ahora</button><button type="button" class="btn ghost block" data-act="pinAsk">Cambiar mi clave</button><button type="button" class="btn ghost block" data-act="logout">Cerrar sesión en este teléfono</button></div>`:''}
+    <p class="note" style="margin:0 0 8px">Versión de la app: v10</p>${sync.mode==='cloud'?`<div class="acts" style="margin-bottom:14px"><button type="button" class="btn tonal block" data-act="syncNow">Revisar ahora</button><button type="button" class="btn ghost block" data-act="pinAsk">Cambiar mi clave</button><button type="button" class="btn ghost block" data-act="logout">Cerrar sesión en este teléfono</button></div>`:''}
     <div class="sub">Copia extra</div><p class="note" style="margin:0 0 10px">Además, puedes guardar una copia en una nota.</p>
    <div class="acts"><button type="button" class="btn tonal block" data-act="backup">Copiar copia de seguridad</button><button type="button" class="btn ghost block" data-act="restore">Restaurar copia</button>
    <button type="button" class="btn danger block" data-act="wipeAsk">Borrar todos los datos</button></div>`;
@@ -1011,17 +1018,23 @@ function cobroSheet(id){
 }
 
 /* detalle de cita */
+let sorryK='';
 function apptSheet(id,confirm){
  const a=db.appts.find(x=>x.id===id);if(!a)return;
  const s=svcById(a.serviceId),c=clientById(a.clientId),st=staffById(a.staffId),d=parse(a.date),wa=waLink(c.phone,confirmMsg(a));
  let acts='';const upcoming=a.date>=todayStr(),delBtn=`<button type="button" class="btn ghost block" data-act="apptDelAsk" data-id="${id}">Eliminar cita</button>`,reuseBtn=`<button type="button" class="btn block" data-act="reuse" data-id="${id}">Agendar a otro cliente aquí</button>`;
  if(confirm==='cancel')acts=`<p style="margin:0 0 10px;font-weight:700">¿Cancelar esta cita?</p><div class="acts"><button type="button" class="btn danger block" data-act="cancelDo" data-id="${id}">Sí, cancelar cita</button><button type="button" class="btn ghost block" data-act="appt" data-id="${id}">No, volver</button></div>`;
+ else if(confirm==='sorry'){const R=[['sorryMal','Me siento mal','🤒'],['sorryComp','Me surgió otro compromiso','📅'],['sorryImp','Imprevisto personal','⚠️']],k=sorryK,msg=k?fill(db.settings.msg[k],msgVars(c,s,a)):'',wl=k?waLink(c.phone,msg):'';
+  acts=`<p style="margin:0 0 10px;font-weight:700">No puedo atender esta cita. ¿Por qué motivo?</p><div>${R.map(([kk,l,e])=>`<button type="button" class="opt ${k===kk?'on':''}" data-act="sorryPick" data-k="${kk}" data-id="${id}"><span class="t">${e} ${l}</span></button>`).join('')}</div>
+  ${k?(wl?`<p class="note" style="margin:6px 0 8px">Mensaje para ${esc(c.name.split(' ')[0])}:</p><div class="bubble">${bub(msg)}</div><div class="acts" style="margin-top:12px"><a class="btn wa block" href="${wl}" target="_blank" rel="noopener">${ic('chat',20)}Enviar disculpa</a>`:`<p class="note">Este cliente no tiene WhatsApp guardado. Agrégalo en Clientes para enviarle el mensaje.</p><div class="acts" style="margin-top:12px">`)+`<div class="two"><button type="button" class="btn ghost" data-act="resched" data-id="${id}">Reprogramar</button><button type="button" class="btn danger" data-act="cancelAsk" data-id="${id}">Cancelar cita</button></div></div>`:''}
+  <button type="button" class="btn ghost block" style="margin-top:10px" data-act="appt" data-id="${id}">Volver</button>`}
  else if(confirm==='after')acts=`<p style="margin:0 0 12px;font-weight:700">Cita cancelada. El horario quedó libre.</p><div class="acts">${reuseBtn}<button type="button" class="btn ghost block" data-act="closeSheet">Ahora no</button></div>`;
  else if(confirm==='del')acts=`<p style="margin:0 0 10px;font-weight:700">¿Eliminar esta cita por completo?</p>${a.status==='completed'&&+a.amount?`<p class="note" style="margin:0 0 12px">También se quita su cobro de ${money(a.amount)} de tus ingresos.</p>`:''}<div class="acts"><button type="button" class="btn danger block" data-act="apptDel" data-id="${id}">Sí, eliminar</button><button type="button" class="btn ghost block" data-act="appt" data-id="${id}">No, volver</button></div>`;
  else if(a.status==='confirmed')acts=`<div class="acts"><button type="button" class="btn block" data-act="done" data-id="${id}">${ic('check',20)}Marcar como atendida y cobrar</button>
   ${wa?`<a class="btn tonal block" href="${wa}" target="_blank" rel="noopener" data-wa="confirm" data-id="${id}">${ic('chat',20)}Enviar WhatsApp de la cita</a>`:`<p class="note" style="margin:0">Agrega el WhatsApp del cliente para avisarle de su cita.</p>`}
   <div class="two"><button type="button" class="btn ghost" data-act="resched" data-id="${id}">Reprogramar</button><button type="button" class="btn ghost" data-act="chg" data-id="${id}">Cambiar cliente</button></div>
-  <div class="two"><button type="button" class="btn ghost" data-act="noshow" data-id="${id}">No asistió</button><button type="button" class="btn danger" data-act="cancelAsk" data-id="${id}">Cancelar</button></div></div>`;
+  <div class="two"><button type="button" class="btn ghost" data-act="noshow" data-id="${id}">No asistió</button><button type="button" class="btn danger" data-act="cancelAsk" data-id="${id}">Cancelar</button></div>
+  ${upcoming?`<button type="button" class="btn tonal block" data-act="sorry" data-id="${id}">Yo no puedo atender · avisar al cliente</button>`:''}</div>`;
  else if(a.status==='completed')acts=`<div class="acts"><button type="button" class="btn tonal block" data-act="cobro" data-id="${id}">${+a.amount?'Cobro: '+money(a.amount)+' · Editar':'Agregar cobro'}</button><button type="button" class="btn ghost block" data-act="reopen" data-id="${id}">Volver a “Por atender”</button>${delBtn}</div>`;
  else acts=`<div class="acts"><button type="button" class="btn ghost block" data-act="reopen" data-id="${id}">Volver a “Por atender”</button>${upcoming?reuseBtn:''}${delBtn}</div>`;
  openSheet(`${head(esc(s.name),`<span class="pill ${a.status}">${STATUS[a.status]}</span>${a.status==='confirmed'&&a.asked?` <span class="note">Mensaje enviado el ${dmShort(parse(a.asked))}</span>`:''}`)}<div class="sh-body"><dl class="kv"><dt>Cliente</dt><dd>${esc(c.name)}${c.phone?`<br><span class="note">${esc(c.phone)}</span>`:''}</dd><dt>Cuándo</dt><dd>${wdShort(d)} ${dmShort(d)}<br>${t12(a.start)} a ${t12(a.start+a.dur)}</dd>${a.notes?`<dt>Notas</dt><dd>${esc(a.notes)}</dd>`:''}</dl>${acts}</div>`);
@@ -1102,6 +1115,8 @@ const A={
   const wasDone=a.status==='completed';a.status='completed';a.amount=v||undefined;closeSheet();
   after(wasDone?'Cobro guardado':`Atendida${v?' · '+money(v):''}`)},
  cancelAsk:d=>apptSheet(d.id,'cancel'),
+ sorry:d=>{sorryK='';apptSheet(d.id,'sorry')},
+ sorryPick:d=>{sorryK=d.k;apptSheet(d.id,'sorry')},
  cancelDo:d=>{const a=db.appts.find(x=>x.id===d.id);if(!a)return;a.status='cancelled';save();render();apptSheet(d.id,'after')},
  reuse:d=>{const a=db.appts.find(x=>x.id===d.id);if(!a)return;ui.date=a.date;ui.tab='agenda';wizStart({date:a.date,start:a.start})},
  apptDelAsk:d=>apptSheet(d.id,'del'),
@@ -1258,6 +1273,7 @@ const I={
  sname:(el,ev)=>{db.settings.name=el.value.trim()||'Salón Spa Sutil by Clara';save()},
  sphone:el=>{db.settings.phone=el.value;save();const h=$('#wahint');if(h)h.textContent=waHint()},
  scc:el=>{db.settings.cc=el.value.replace(/\D/g,'')||'507';save();const h=$('#wahint');if(h)h.textContent=waHint()},
+ msorry:el=>{db.settings.msg[el.dataset.k]=el.value;save()},
  mconfirm:el=>{db.settings.msg.confirm=el.value;save()},mmaint:el=>{db.settings.msg.maint=el.value;save()},
  vcf:(el,ev)=>{if(ev.type!=='change')return;const f=el.files&&el.files[0];if(!f)return;const r=new FileReader();
   r.onload=()=>{imp.list=parseVcf(String(r.result)).sort((a,b)=>a.name.localeCompare(b.name,'es'));imp.sel=new Set();imp.q='';imp.err=imp.list.length?'':'No encontré contactos con teléfono en ese archivo.';renderImport()};
