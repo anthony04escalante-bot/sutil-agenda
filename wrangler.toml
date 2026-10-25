@@ -1,0 +1,9 @@
+# Configuración de Cloudflare Pages: conecta la base de datos D1 (guardado en la nube)
+name = "sutil-agenda"
+pages_build_output_dir = "."
+compatibility_date = "2026-10-25"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sutil-agenda"
+database_id = "2329f2a4-0b66-4df0-a97d-cd08cb38dbb8"
