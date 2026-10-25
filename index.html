@@ -541,6 +541,56 @@ body::before{background:var(--bg)}
 .strip span{line-height:1.25}
 .appt-main .pill{margin-top:4px}
 .seg button{font-size:15px;padding:0 2px}
+
+/* ═════ v4 · más limpio y con menos adornos ═════ */
+.top .sal::before{display:none}
+.top .sal{font:600 15px/1.2 var(--f-body);letter-spacing:.06em;color:var(--muted)}
+.top{padding:10px 0 6px;margin-bottom:6px}
+.top h1{font-size:36px}
+.live{font-size:13px}
+.iconbtn{box-shadow:none;background:var(--surface);border:2px solid var(--line)}
+.sh-head .iconbtn{border:0;background:var(--p5)}
+.lockup{width:min(100%,170px)}
+.strip{display:grid;grid-template-columns:1fr 1fr 1.5fr;gap:0;background:var(--surface);border-radius:24px;border:2px solid var(--line);box-shadow:none;padding:4px 0;margin:6px 0 16px}
+.strip div,.strip button{background:none;box-shadow:none;border:0!important;border-radius:0;padding:8px 6px;border-left:2px solid var(--line)!important}
+.strip div:first-child{border-left:0!important}
+.strip b{font-size:32px}
+.strip span{font-size:14px}
+.wkb{box-shadow:none;border:2px solid var(--line)}
+.wkb.x{border-color:transparent}
+.wkb.on{border-color:var(--accent)}
+.wkb.td{border-color:var(--p3)}
+.list{gap:12px}
+.appt{box-shadow:inset 8px 0 0 var(--cat,var(--gold));border:2px solid var(--line)}
+.appt-main{padding:14px 14px 14px 22px}
+.appt-main .pill{background:none!important;padding:0;font-size:15px;margin-top:2px;border-radius:0}
+.gap{min-height:56px;padding:12px 16px;font-size:17px;background:none;border-width:2px}
+.gap b{font-size:15px;padding:7px 14px}
+.rows,.mc,.cal button,.tile,.big{box-shadow:none;border:2px solid var(--line)}
+.rows>*+*{border-top:2px solid var(--line)}
+.cal button.x,.cal button.dayoff{border-color:transparent}
+.mrow{box-shadow:inset 8px 0 0 var(--p3);border:2px solid var(--line)}
+.btn{box-shadow:none}
+.tabbar{box-shadow:0 4px 18px rgba(80,72,50,.14)}
+.fab{box-shadow:0 6px 18px rgba(80,72,50,.22)}
+.demo{padding:12px 16px;font-size:16px}
+.empty{padding:32px 12px}
+.appt-main{grid-template-columns:86px 1fr}
+.tm b{font-size:25px;display:block}
+.tm span{display:block;margin:3px 0 0}
+.gap{font-size:16px;padding:12px 14px}
+.gap b{padding:7px 12px}
+@media (max-height:720px){.lk-logo{width:60px;height:63px;margin-bottom:4px}.lk h1{font-size:30px;margin:2px 0 4px}.lk p{font-size:16px;margin-bottom:8px}.dots{margin:2px 0 10px}.pad{gap:10px}.pad button{height:62px;font-size:28px}.lk .lm{min-height:22px;font-size:16px}}
+.cal{grid-template-columns:repeat(7,minmax(0,1fr))}
+.cal button{min-width:0;padding:0}
+.wkd{grid-template-columns:repeat(7,minmax(0,1fr))}
+.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.in{min-width:0;max-width:100%}
+input[type=time].in,input[type=date].in{font-size:17px;padding:10px 12px}
+.seg button{white-space:nowrap}
+.sh-foot .btn.ghost{flex:0 0 auto;padding:0 24px}
+.sh-foot .btn:not(.ghost){flex:1 1 0;min-width:0}
+.fab{height:60px}
 </style>
 
 </head>
@@ -716,7 +766,7 @@ function demoBanner(){return db.demo?`<div class="demo"><span>Datos de ejemplo.<
 function memBanner(){
  if(memOnly)return `<div class="demo"><span>Este navegador no permite guardar. Los cambios se pierden al cerrar.</span></div>`;
  if(sync.mode==='local')return `<div class="demo"><span>Falta activar el guardado en la nube. Por ahora los datos solo están en este teléfono.</span></div>`;
- if(sync.mode==='cloud'&&(sync.dirty||sync.state==='offline'))return `<div class="demo"><span>Sin conexión. Tus cambios están guardados aquí y se subirán solos.</span></div>`;
+ if(sync.mode==='cloud'&&sync.state==='offline')return `<div class="demo"><span>Sin conexión. Tus cambios están guardados aquí y se subirán solos.</span></div>`;
  return ''}
 
 function apptCard(a){
@@ -836,7 +886,7 @@ function vSalon(){
    <button type="button" class="btn ghost block" data-act="msgReset">Restablecer mensajes</button>`;
  }else{
   const s=db.settings;
-  body=`<div class="pal" aria-hidden="true" style="margin:0 0 6px"><i></i><i></i><i></i><i></i><i></i></div><div class="lockup" role="img" aria-label="Sutil, estudio by Clara"></div><div class="field"><label for="sn">Nombre del salón</label><input class="in" id="sn" value="${esc(s.name)}" data-in="sname"></div>
+  body=`<div class="lockup" role="img" aria-label="Sutil, estudio by Clara"></div><div class="field"><label for="sn">Nombre del salón</label><input class="in" id="sn" value="${esc(s.name)}" data-in="sname"></div>
    <div class="sub">Copia de seguridad</div><p class="note" style="margin:0 0 10px">${syncLabel()}</p>
     ${sync.mode==='cloud'?`<div class="acts" style="margin-bottom:14px"><button type="button" class="btn tonal block" data-act="syncNow">Revisar ahora</button><button type="button" class="btn ghost block" data-act="pinAsk">Cambiar mi clave</button><button type="button" class="btn ghost block" data-act="logout">Cerrar sesión en este teléfono</button></div>`:''}
     <div class="sub">Copia extra</div><p class="note" style="margin:0 0 10px">Además, puedes guardar una copia en una nota.</p>
@@ -844,13 +894,13 @@ function vSalon(){
    <button type="button" class="btn danger block" data-act="wipeAsk">Borrar todos los datos</button></div>`;
  }
  return `<header class="top"><div class="sal">${esc(db.settings.name)}</div><h1>Ajustes</h1></header>${demoBanner()}
-  <div class="seg">${[['servicios','Servicios'],['horario','Horario'],['whatsapp','WhatsApp'],['datos','Mi salón']].map(([k,l])=>`<button type="button" data-act="salonTab" data-k="${k}" aria-pressed="${T===k}">${l}</button>`).join('')}</div>${body}`;
+  <div class="seg">${[['servicios','Servicios'],['horario','Horario'],['whatsapp','WhatsApp'],['datos','Salón']].map(([k,l])=>`<button type="button" data-act="salonTab" data-k="${k}" aria-pressed="${T===k}">${l}</button>`).join('')}</div>${body}`;
 }
 function render(){
  const v={agenda:vAgenda,cal:vCal,clientes:vClientes,ingresos:vIngresos,salon:vSalon}[ui.tab]();
  app.innerHTML=`<div class="shell">${v}</div>`;
  tabsEl.innerHTML=TABS.map(([k,l,i])=>`<button type="button" data-act="tab" data-k="${k}" ${(ui.tab==='cal'?'agenda':ui.tab)===k?'aria-current="page"':''}><span class="pl">${ic(i,22)}</span>${l}</button>`).join('');
- fabEl.hidden=!(ui.tab==='agenda'||ui.tab==='cal');
+ fabEl.hidden=ui.tab!=='agenda';
  {const n=maintDue().filter(i=>!i.done).length,b=$('#fabn');if(b){b.hidden=!n;b.textContent=n}}
 }
 
@@ -862,7 +912,7 @@ function openSheet(html,keepScroll){
 }
 function closeSheet(){if(sheet.open)sheet.close()}
 sheet.addEventListener('click',e=>{if(e.target===sheet)closeSheet()});
-sheet.addEventListener('close',()=>{wiz=null});
+sheet.addEventListener('close',()=>{if(!sheet.open)wiz=null});
 const head=(t,sub)=>`<div class="grab"></div><div class="sh-head"><div><h2 id="shtitle">${t}</h2>${sub?`<p>${sub}</p>`:''}</div><button type="button" class="iconbtn" data-act="closeSheet" aria-label="Cerrar">${ic('x',20)}</button></div>`;
 
 /* asistente de cita */
@@ -891,7 +941,7 @@ function renderWiz(reset){
   if(w.start!=null&&!slots.some(s=>s.start===w.start&&s.free))w.start=null;
   const ds=[];for(let i=0;i<28;i++)ds.push(ymd(addDays(new Date(),i)));if(!ds.includes(w.date))ds.unshift(w.date);
   body=`<p class="note" style="margin:0 0 10px"><b style="color:var(--ink)">${esc(nm)}</b> · ${esc(svc.name)} · ${durLabel(svc.dur)}</p>
-   <div class="row" style="justify-content:space-between"><span class="lbl">Día</span><label class="lbl" style="display:flex;gap:8px;align-items:center">Otra fecha<input type="date" class="in" style="width:auto;min-height:40px;padding:4px 10px" id="wd" min="${todayStr()}" value="${w.date}" data-in="wDate"></label></div>
+   <div class="row" style="justify-content:space-between"><span class="lbl">Día</span><label class="lbl" style="display:flex;gap:8px;align-items:center">Otro día<input type="date" class="in" style="width:auto;min-height:40px;padding:4px 10px" id="wd" min="${todayStr()}" value="${w.date}" data-in="wDate"></label></div>
    <div class="dstrip">${ds.map(x=>{const d=parse(x);return `<button type="button" class="dchip ${x===w.date?'on':''}" data-act="wDay" data-d="${x}" ${isOpenDay(x)?'':'disabled'}><small>${wdShort(d)}</small>${d.getDate()}</button>`}).join('')}</div>
    <div class="sub" style="margin-top:8px">Hora</div>
    ${slots.length?`<div class="slots num">${slots.map(s=>`<button type="button" class="slot ${w.start===s.start?'on':''}" data-act="wSlot" data-s="${s.start}" ${s.free?'':'disabled'}>${t12(s.start)}</button>`).join('')}</div>`
@@ -929,16 +979,29 @@ function cobroSheet(id){
 function apptSheet(id,confirm){
  const a=db.appts.find(x=>x.id===id);if(!a)return;
  const s=svcById(a.serviceId),c=clientById(a.clientId),st=staffById(a.staffId),d=parse(a.date),wa=waLink(c.phone,confirmMsg(a));
- let acts='';
- if(confirm==='cancel')acts=`<p style="margin:0 0 8px;font-weight:600">¿Cancelar esta cita?</p><div class="acts"><button type="button" class="btn danger block" data-act="cancelDo" data-id="${id}">Sí, cancelar cita</button><button type="button" class="btn ghost block" data-act="appt" data-id="${id}">No, volver</button></div>`;
+ let acts='';const upcoming=a.date>=todayStr(),delBtn=`<button type="button" class="btn ghost block" data-act="apptDelAsk" data-id="${id}">Eliminar cita</button>`,reuseBtn=`<button type="button" class="btn block" data-act="reuse" data-id="${id}">Agendar a otro cliente aquí</button>`;
+ if(confirm==='cancel')acts=`<p style="margin:0 0 10px;font-weight:700">¿Cancelar esta cita?</p><div class="acts"><button type="button" class="btn danger block" data-act="cancelDo" data-id="${id}">Sí, cancelar cita</button><button type="button" class="btn ghost block" data-act="appt" data-id="${id}">No, volver</button></div>`;
+ else if(confirm==='after')acts=`<p style="margin:0 0 12px;font-weight:700">Cita cancelada. El horario quedó libre.</p><div class="acts">${reuseBtn}<button type="button" class="btn ghost block" data-act="closeSheet">Ahora no</button></div>`;
+ else if(confirm==='del')acts=`<p style="margin:0 0 10px;font-weight:700">¿Eliminar esta cita por completo?</p>${a.status==='completed'&&+a.amount?`<p class="note" style="margin:0 0 12px">También se quita su cobro de ${money(a.amount)} de tus ingresos.</p>`:''}<div class="acts"><button type="button" class="btn danger block" data-act="apptDel" data-id="${id}">Sí, eliminar</button><button type="button" class="btn ghost block" data-act="appt" data-id="${id}">No, volver</button></div>`;
  else if(a.status==='confirmed')acts=`<div class="acts"><button type="button" class="btn block" data-act="done" data-id="${id}">${ic('check',20)}Marcar como atendida y cobrar</button>
   ${wa?`<a class="btn tonal block" href="${wa}" target="_blank" rel="noopener" data-wa="confirm" data-id="${id}">${ic('chat',20)}Enviar WhatsApp de la cita</a>`:`<p class="note" style="margin:0">Agrega el WhatsApp del cliente para avisarle de su cita.</p>`}
-  <button type="button" class="btn ghost block" data-act="resched" data-id="${id}">Reprogramar</button>
+  <div class="two"><button type="button" class="btn ghost" data-act="resched" data-id="${id}">Reprogramar</button><button type="button" class="btn ghost" data-act="chg" data-id="${id}">Cambiar cliente</button></div>
   <div class="two"><button type="button" class="btn ghost" data-act="noshow" data-id="${id}">No asistió</button><button type="button" class="btn danger" data-act="cancelAsk" data-id="${id}">Cancelar</button></div></div>`;
- else acts=`<div class="acts"><button type="button" class="btn ghost block" data-act="reopen" data-id="${id}">Volver a “Por atender”</button></div>`;
- if(a.status==='completed')acts=`<div class="acts"><button type="button" class="btn tonal block" data-act="cobro" data-id="${id}">${+a.amount?'Cobro: '+money(a.amount)+' · Editar':'Agregar cobro'}</button>${waLink(c.phone,'')?``:''}<button type="button" class="btn ghost block" data-act="reopen" data-id="${id}">Volver a “Por atender”</button></div>`;
+ else if(a.status==='completed')acts=`<div class="acts"><button type="button" class="btn tonal block" data-act="cobro" data-id="${id}">${+a.amount?'Cobro: '+money(a.amount)+' · Editar':'Agregar cobro'}</button><button type="button" class="btn ghost block" data-act="reopen" data-id="${id}">Volver a “Por atender”</button>${delBtn}</div>`;
+ else acts=`<div class="acts"><button type="button" class="btn ghost block" data-act="reopen" data-id="${id}">Volver a “Por atender”</button>${upcoming?reuseBtn:''}${delBtn}</div>`;
  openSheet(`${head(esc(s.name),`<span class="pill ${a.status}">${STATUS[a.status]}</span>${a.status==='confirmed'&&a.asked?` <span class="note">Mensaje enviado el ${dmShort(parse(a.asked))}</span>`:''}`)}<div class="sh-body"><dl class="kv"><dt>Cliente</dt><dd>${esc(c.name)}${c.phone?`<br><span class="note">${esc(c.phone)}</span>`:''}</dd><dt>Cuándo</dt><dd>${wdShort(d)} ${dmShort(d)}<br>${t12(a.start)} a ${t12(a.start+a.dur)}</dd>${a.notes?`<dt>Notas</dt><dd>${esc(a.notes)}</dd>`:''}</dl>${acts}</div>`);
 }
+
+/* cambiar el cliente de una cita */
+const chg={aid:'',q:''};
+function chgRows(){
+ const q=chg.q.trim().toLowerCase(),qd=q.replace(/\D/g,''),cur=(db.appts.find(x=>x.id===chg.aid)||{}).clientId;
+ const l=db.clients.filter(c=>c.id!==cur&&(!q||c.name.toLowerCase().includes(q)||(qd&&c.phone.replace(/\D/g,'').includes(qd)))).sort((x,y)=>x.name.localeCompare(y.name,'es')).slice(0,30);
+ return l.length?`<div class="rows">${l.map(c=>`<button type="button" class="rw" data-act="chgPick" data-id="${c.id}"><span class="av">${esc(initials(c.name))}</span><span style="min-width:0"><span class="t">${esc(c.name)}</span><br><span class="s">${esc(c.phone||'Sin teléfono')}</span></span></button>`).join('')}</div>`:`<p class="note">Ningún cliente coincide.</p>`}
+function chgSheet(aid){
+ const a=db.appts.find(x=>x.id===aid);if(!a)return;chg.aid=aid;chg.q='';const d=parse(a.date);
+ openSheet(`${head('Cambiar cliente',`${esc(svcById(a.serviceId).name)} · ${wdShort(d)} ${dmShort(d)} · ${t12(a.start)}`)}<div class="sh-body"><div class="search">${ic('search',20)}<input class="in" id="cq2" type="search" placeholder="Buscar cliente" data-in="chgq" autocomplete="off"></div><div id="chglist">${chgRows()}</div>
+  <div class="sub">O agrega uno nuevo</div><form id="f" onsubmit="return false"><div class="field"><label for="nn">Nombre</label><input class="in" id="nn" name="name" autocomplete="off"></div><div class="field"><label for="np">WhatsApp</label><input class="in" id="np" name="phone" inputmode="tel"></div><p class="err" id="ferr" role="alert"></p></form><button type="button" class="btn tonal block" data-act="chgNew">Agregar y asignar</button></div>`)}
 
 /* cliente */
 function clientSheet(id){
@@ -949,7 +1012,7 @@ function clientSheet(id){
   <div class="field"><label for="cp">WhatsApp</label><input class="in" id="cp" name="phone" inputmode="tel" value="${esc(c.phone)}"><span class="note">Con 8 dígitos se le agrega +${esc(db.settings.cc)} automáticamente.</span></div>
   <div class="field"><label for="cnt">Notas</label><textarea class="in" id="cnt" name="notes" placeholder="Alergias, preferencias">${esc(c.notes)}</textarea></div><p class="err" id="ferr" role="alert"></p></form>
   ${hist.length?`<div class="sub" style="margin-top:4px">Historial</div><div class="rows">${hist.slice(0,8).map(a=>`<button type="button" class="rw" data-act="appt" data-id="${a.id}"><span style="min-width:0"><span class="t">${esc(svcById(a.serviceId).name)}</span><br><span class="s">${dmShort(parse(a.date))} · ${STATUS[a.status]}</span></span></button>`).join('')}</div>`:''}
-  ${id&&!hist.length?`<button type="button" class="btn danger block" style="margin-top:8px" data-act="clientDel" data-id="${id}">Eliminar cliente</button>`:''}</div>
+  ${id?`<button type="button" class="btn ghost danger block" style="margin-top:14px" data-act="clientDelAsk" data-id="${id}">Eliminar cliente</button>`:''}</div>
   <div class="sh-foot">${id?`<button type="button" class="btn tonal" data-act="newFor" data-id="${id}">Nueva cita</button>`:''}<button type="button" class="btn" data-act="clientSave" data-id="${id||''}">Guardar</button></div>`);
 }
 function serviceSheet(id){
@@ -967,6 +1030,7 @@ const ferr=m=>{const e=$('#ferr');if(e)e.textContent=m};
 const fdata=()=>new FormData($('#f'));
 function after(msg){save();render();if(msg)toast(msg)}
 
+const tomb=id=>{(db.del=db.del||[]).push(id)};
 /* ───────── acciones ───────── */
 const A={
  tab:d=>{ui.tab=d.k;render();scrollTo(0,0)},
@@ -1001,7 +1065,19 @@ const A={
   const wasDone=a.status==='completed';a.status='completed';a.amount=v||undefined;closeSheet();
   after(wasDone?'Cobro guardado':`Atendida${v?' · '+money(v):''}`)},
  cancelAsk:d=>apptSheet(d.id,'cancel'),
- cancelDo:d=>{const a=db.appts.find(x=>x.id===d.id);if(a)a.status='cancelled';closeSheet();after('Cita cancelada')},
+ cancelDo:d=>{const a=db.appts.find(x=>x.id===d.id);if(!a)return;a.status='cancelled';save();render();apptSheet(d.id,'after')},
+ reuse:d=>{const a=db.appts.find(x=>x.id===d.id);if(!a)return;ui.date=a.date;ui.tab='agenda';wizStart({date:a.date,start:a.start})},
+ apptDelAsk:d=>apptSheet(d.id,'del'),
+ apptDel:d=>{tomb(d.id);db.appts=db.appts.filter(a=>a.id!==d.id);closeSheet();after('Cita eliminada')},
+ chg:d=>chgSheet(d.id),
+ chgPick:d=>{const a=db.appts.find(x=>x.id===chg.aid);if(!a)return;a.clientId=d.id;delete a.asked;save();render();apptSheet(a.id);toast('Cliente cambiado')},
+ chgNew:()=>{const f=fdata(),name=(f.get('name')||'').trim(),ph=(f.get('phone')||'').trim();
+  if(!name){ferr('Escribe el nombre.');return}
+  if(ph&&!waOk(ph)){ferr('Escribe el número completo de WhatsApp.');return}
+  const a=db.appts.find(x=>x.id===chg.aid);if(!a)return;
+  const dg=waDigits(ph),ex=dg?db.clients.find(c=>waDigits(c.phone)===dg):null;let cid;
+  if(ex)cid=ex.id;else{cid=uid();db.clients.push({id:cid,name,phone:ph,notes:''})}
+  a.clientId=cid;delete a.asked;save();render();apptSheet(a.id);toast('Cliente cambiado')},
  noshow:d=>{const a=db.appts.find(x=>x.id===d.id);if(a)a.status='noshow';closeSheet();after('Marcada como no asistió')},
  reopen:d=>{const a=db.appts.find(x=>x.id===d.id);if(!a)return;if(!staffFree(a.staffId,a.date,a.start,a.dur,a.id)){apptSheet(d.id);toast('Ese horario ya fue ocupado');return}a.status='confirmed';closeSheet();after('Cita reactivada')},
  resched:d=>{const a=db.appts.find(x=>x.id===d.id),past=a.date<todayStr();wizStart({step:3,editId:a.id,serviceId:a.serviceId,staffId:a.staffId,date:past?defaultDate():a.date,start:past?null:a.start,clientId:a.clientId,notes:a.notes||''})},
@@ -1038,7 +1114,9 @@ const A={
   const ph=(f.get('phone')||'').trim();if(ph&&!waOk(ph)){ferr('Escribe el número completo de WhatsApp.');return}
   const rec={name,phone:ph,notes:(f.get('notes')||'').trim()};
   if(d.id)Object.assign(clientById(d.id),rec);else db.clients.push(Object.assign({id:uid()},rec));closeSheet();after('Cliente guardado')},
- clientDel:d=>{if(!confirm('¿Eliminar este cliente?'))return;db.clients=db.clients.filter(c=>c.id!==d.id);closeSheet();after('Cliente eliminado')},
+ clientDelAsk:d=>{const c=clientById(d.id),pend=db.appts.filter(a=>a.clientId===d.id&&a.status==='confirmed').length,past=db.appts.filter(a=>a.clientId===d.id&&a.status!=='confirmed').length;
+  openSheet(`${head('¿Eliminar cliente?',esc(c.name))}<div class="sh-body"><p style="margin:0 0 10px;font-weight:700">${pend?`Sus ${pend} cita${pend===1?'':'s'} por atender se eliminan y esos horarios quedan libres.`:'No tiene citas por atender.'}</p>${past?`<p class="note" style="margin:0">Sus ${past} cita${past===1?'':'s'} anteriores se conservan para tus ingresos.</p>`:''}</div><div class="sh-foot"><button type="button" class="btn ghost" data-act="client" data-id="${d.id}">Volver</button><button type="button" class="btn danger" data-act="clientDel" data-id="${d.id}">Sí, eliminar</button></div>`)},
+ clientDel:d=>{tomb(d.id);db.appts.filter(a=>a.clientId===d.id&&a.status==='confirmed').forEach(a=>tomb(a.id));db.appts=db.appts.filter(a=>!(a.clientId===d.id&&a.status==='confirmed'));db.clients=db.clients.filter(c=>c.id!==d.id);closeSheet();after('Cliente eliminado')},
  /* servicios y equipo */
  svc:d=>serviceSheet(d.id),svcNew:()=>serviceSheet(null),
  svcSave:d=>{const f=fdata(),name=(f.get('name')||'').trim(),cat=(f.get('cat')||'').trim()||'Otros';
@@ -1046,7 +1124,7 @@ const A={
   const rec={name,cat,dur:+f.get('dur'),maint:+f.get('maint')||0,active:f.get('active')==='on'};
   if(d.id)Object.assign(svcById(d.id),rec);else{const id='s'+uid();db.services.push(Object.assign({id},rec));db.staff.forEach(s=>s.services.push(id))}
   closeSheet();after('Servicio guardado')},
- svcDel:d=>{if(!confirm('¿Eliminar este servicio?'))return;db.services=db.services.filter(s=>s.id!==d.id);db.staff.forEach(s=>{s.services=s.services.filter(x=>x!==d.id)});closeSheet();after('Servicio eliminado')},
+ svcDel:d=>{if(!confirm('¿Eliminar este servicio?'))return;tomb(d.id);db.services=db.services.filter(s=>s.id!==d.id);db.staff.forEach(s=>{s.services=s.services.filter(x=>x!==d.id)});closeSheet();after('Servicio eliminado')},
  dayTog:d=>{const n=+d.d,l=db.settings.daysOpen;db.settings.daysOpen=l.includes(n)?l.filter(x=>x!==n):[...l,n];after()},
  /* datos */
  backup:()=>{const json=JSON.stringify(db);
@@ -1141,6 +1219,7 @@ const I={
  vcf:(el,ev)=>{if(ev.type!=='change')return;const f=el.files&&el.files[0];if(!f)return;const r=new FileReader();
   r.onload=()=>{imp.list=parseVcf(String(r.result)).sort((a,b)=>a.name.localeCompare(b.name,'es'));imp.sel=new Set();imp.q='';imp.err=imp.list.length?'':'No encontré contactos con teléfono en ese archivo.';renderImport()};
   r.onerror=()=>{imp.err='No se pudo leer el archivo.';renderImport()};r.readAsText(f)},
+ chgq:el=>{chg.q=el.value;const l=$('#chglist');if(l)l.innerHTML=chgRows()},
  impQ:el=>{imp.q=el.value;const l=$('#implist');if(l)l.innerHTML=impRows()},
  impSel:el=>{const i=+el.dataset.i;if(el.checked)imp.sel.add(i);else imp.sel.delete(i);updImpFoot()}
 };
@@ -1158,7 +1237,7 @@ const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 const tok=()=>lsGet(TOK);
 function syncLabel(){
  if(sync.mode==='local')return 'Guardado solo en este teléfono. Falta activar el guardado en la nube.';
- if(sync.dirty||sync.state==='offline')return 'Sin conexión. Los cambios se subirán solos al volver internet.';
+ if(sync.state==='offline')return 'Sin conexión. Los cambios se subirán solos al volver internet.';
  return 'Guardado en la nube. Si abres la app en otro celular con tu clave, verás lo mismo.'}
 async function api(a,method,body){
  const h={'content-type':'application/json'},t=tok();if(t)h.authorization='Bearer '+t;
@@ -1170,7 +1249,7 @@ async function api(a,method,body){
 function mergeDb(srv,loc){
  const out=migrate(JSON.parse(JSON.stringify(srv)));
  ['services','clients','appts'].forEach(k=>{const m=new Map(out[k].map(x=>[x.id,x]));(loc[k]||[]).forEach(x=>m.set(x.id,x));out[k]=[...m.values()]});
- out.settings=loc.settings||out.settings;out.maint={...(out.maint||{}),...(loc.maint||{})};out.demo=false;return out}
+ const del=new Set([...(srv.del||[]),...(loc.del||[])]);out.del=[...del];['services','clients','appts'].forEach(k=>{out[k]=out[k].filter(x=>!del.has(x.id))});out.settings=loc.settings||out.settings;out.maint={...(out.maint||{}),...(loc.maint||{})};out.demo=false;return out}
 async function push(){
  if(sync.mode!=='cloud'||sync.busy||!sync.dirty)return;
  sync.busy=true;sync.dirty=false;
