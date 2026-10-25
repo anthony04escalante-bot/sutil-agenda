@@ -668,7 +668,7 @@ DEFMSG.sorry='Hola {nombre}, soy Clara. Lamentablemente *no podré atenderle el 
 const OLDMSG={confirm:'Hola {nombre}, su cita fue programada para el día {fecha}, a las {hora}, para el servicio de {servicio}. Le esperamos en {salon}. ¡Gracias!',maint:'Hola {nombre}, te escribimos de {salon}. Ya es momento del mantenimiento de tu {servicio}. ¿Te agendamos una cita? Responde a este mensaje y te reservamos tu horario.'};
 const OWNER=()=>({id:'owner',name:'Clara',phone:'',active:true,services:[]});
 function baseDb(){
- return{v:5,demo:false,maint:{},settings:{off:[],name:'Salón Spa Sutil by Clara',phone:'60435416',cc:'507',blocks:[['09:00','13:00'],['14:00','18:00']],daysOpen:[1,2,3,4,5,6],step:30,msg:{...DEFMSG}},
+ return{v:5,demo:false,maint:{},settings:{off:[],name:'Salón Spa Sutil by Clara',phone:'60435416',cc:'507',web:'',insta:'https://instagram.com/sutil_by_clara',blocks:[['09:00','13:00'],['14:00','18:00']],daysOpen:[1,2,3,4,5,6],step:30,msg:{...DEFMSG}},
   services:DEFAULT_SERVICES.map(([name,cat,dur,maint],i)=>({id:'s'+i,name,cat,dur,maint,active:true})),staff:[OWNER()],clients:[],appts:[]};
 }
 function buildDemo(){
@@ -697,7 +697,7 @@ function migrate(d){if((d.v||1)<2){d.v=1;d.services.forEach(s=>{delete s.price})
  if(d.v<5){const OLD='Hola {nombre}, te escribimos de {salon}. Tu cita de {servicio} es el {fecha} a las {hora}. ¿Nos confirmas tu asistencia? Responde SÍ para confirmar. ¡Gracias!';if(d.settings.msg&&d.settings.msg.confirm===OLD)d.settings.msg.confirm=DEFMSG.confirm;d.v=Math.min(d.v,4)}
  if(d.v<4){d.staff=[OWNER()];d.appts.forEach(a=>{a.staffId='owner'});d.settings.off=d.settings.off||[];d.v=4}
  if(d.settings.msg){if(!d.settings.msg.sorry||d.settings.msg.sorry.startsWith('Hola {nombre}, soy Clara de {salon}')||d.settings.msg.sorryMal||d.settings.msg.sorryComp||d.settings.msg.sorryImp){d.settings.msg.sorry=DEFMSG.sorry;delete d.settings.msg.sorryMal;delete d.settings.msg.sorryComp;delete d.settings.msg.sorryImp}if(d.settings.msg.confirm===OLDMSG.confirm)d.settings.msg.confirm=DEFMSG.confirm;if(d.settings.msg.maint===OLDMSG.maint)d.settings.msg.maint=DEFMSG.maint}
- d.v=5;if(!d.settings.phone)d.settings.phone='60435416';
+ d.v=5;if(!d.settings.phone)d.settings.phone='60435416';if(d.settings.insta==null)d.settings.insta='https://instagram.com/sutil_by_clara';if(d.settings.web==null)d.settings.web='';
  return d}
 function load(){try{const r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);if(d&&Array.isArray(d.services)&&Array.isArray(d.appts))return migrate(d)}}catch(e){}return null}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){memOnly=true}
@@ -757,7 +757,8 @@ const fill=(t,v)=>String(t).replace(/\{(\w+)\}/g,(m,k)=>v[k]??m);
 function msgVars(c,s,a){const d=a?parse(a.date):null;return{nombre:c.name.split(' ')[0],servicio:s.name.toLowerCase(),salon:db.settings.name,whatsapp:fmtPhone(db.settings.phone),
  fecha:d?`${wdLong(d).toLowerCase()} ${d.getDate()} de ${monthLong(d).toLowerCase()}`:'',hora:a?t12(a.start):''}}
 const bub=t=>esc(t).replace(/\*([^*\n]+)\*/g,'<b>$1</b>');
-const confirmMsg=a=>fill(db.settings.msg.confirm,msgVars(clientById(a.clientId),svcById(a.serviceId),a));
+const sig=()=>{const w=(db.settings.web||'').trim(),i=(db.settings.insta||'').trim();return (w||i)?'\n\n'+[w?'🌐 '+w:'',i?'📸 '+i:''].filter(Boolean).join('\n'):''};
+const confirmMsg=a=>fill(db.settings.msg.confirm,msgVars(clientById(a.clientId),svcById(a.serviceId),a))+sig();
 function maintDue(){
  const out=[],today=todayStr(),lim=ymd(addDays(new Date(),7)),best={};
  db.appts.filter(a=>a.status==='completed').forEach(a=>{const k=a.clientId+'|'+a.serviceId;if(!best[k]||a.date>best[k].date)best[k]=a});
@@ -906,6 +907,10 @@ function vSalon(){
    <div class="two" style="grid-template-columns:1fr 104px"><div class="field"><label for="sp">Número</label><input class="in" id="sp" inputmode="tel" value="${esc(s.phone)}" data-in="sphone"></div><div class="field"><label for="cc">País</label><input class="in" id="cc" inputmode="numeric" value="${esc(s.cc)}" data-in="scc"></div></div>
    <p class="note" id="wahint" style="margin:-6px 0 10px">${waHint()}</p>
    ${wa?`<a class="btn tonal block" href="https://wa.me/${wa}" target="_blank" rel="noopener">${ic('chat',20)}Probar mi número</a>`:''}
+   <div class="sub">Enlaces al final de los mensajes</div>
+   <div class="field"><label for="sweb">Página web del salón</label><input class="in" id="sweb" type="url" inputmode="url" placeholder="https://..." value="${esc(s.web||'')}" data-in="sweb" autocomplete="off"></div>
+   <div class="field"><label for="sig">Instagram</label><input class="in" id="sig" type="url" inputmode="url" placeholder="https://instagram.com/..." value="${esc(s.insta||'')}" data-in="sinsta" autocomplete="off"></div>
+   <p class="note" style="margin:-6px 0 10px">Se agregan solos al final del mensaje de la cita y del mantenimiento. Déjalos vacíos para no incluirlos.</p>
    <div class="sub">Mensaje al programar una cita</div>
    <div class="field"><textarea class="in" id="m1" data-in="mconfirm" aria-label="Mensaje de cita programada" style="min-height:260px">${esc(s.msg.confirm)}</textarea></div>
    <div class="sub">Mensaje de mantenimiento</div>
@@ -918,7 +923,7 @@ function vSalon(){
   const s=db.settings;
   body=`<div class="lockup" role="img" aria-label="Sutil, estudio by Clara"></div><div class="field"><label for="sn">Nombre del salón</label><input class="in" id="sn" value="${esc(s.name)}" data-in="sname"></div>
    <div class="sub">Copia de seguridad</div><p class="note" style="margin:0 0 10px">${syncLabel()}</p>
-    <p class="note" style="margin:0 0 8px">Versión de la app: v12</p>${sync.mode==='cloud'?`<div class="acts" style="margin-bottom:14px"><button type="button" class="btn tonal block" data-act="syncNow">Revisar ahora</button><button type="button" class="btn ghost block" data-act="pinAsk">Cambiar mi clave</button><button type="button" class="btn ghost block" data-act="logout">Cerrar sesión en este teléfono</button></div>`:''}
+    <p class="note" style="margin:0 0 8px">Versión de la app: v13</p>${sync.mode==='cloud'?`<div class="acts" style="margin-bottom:14px"><button type="button" class="btn tonal block" data-act="syncNow">Revisar ahora</button><button type="button" class="btn ghost block" data-act="pinAsk">Cambiar mi clave</button><button type="button" class="btn ghost block" data-act="logout">Cerrar sesión en este teléfono</button></div>`:''}
     <div class="sub">Copia extra</div><p class="note" style="margin:0 0 10px">Además, puedes guardar una copia en una nota.</p>
    <div class="acts"><button type="button" class="btn tonal block" data-act="backup">Copiar copia de seguridad</button><button type="button" class="btn ghost block" data-act="restore">Restaurar copia</button>
    <button type="button" class="btn danger block" data-act="wipeAsk">Borrar todos los datos</button></div>`;
@@ -1203,7 +1208,7 @@ const A={
 };
 function maintSheet(){
  const l=maintDue();
- const body=l.length?l.map(i=>{const wa=waLink(i.c.phone,fill(db.settings.msg.maint,msgVars(i.c,i.s)));
+ const body=l.length?l.map(i=>{const wa=waLink(i.c.phone,fill(db.settings.msg.maint,msgVars(i.c,i.s))+sig());
   const when=i.days>0?`Vencido hace ${i.days} día${i.days===1?'':'s'}`:i.days===0?'Vence hoy':`Vence en ${-i.days} día${i.days===-1?'':'s'}`;
   return `<div class="mc${i.done?' sent':''}"><div class="mc-h"><div style="min-width:0"><div class="mc-n">${esc(i.c.name)}</div><div class="meta">${esc(i.s.name)} · última cita ${dmShort(parse(i.a.date))}</div></div><span class="pill ${i.days>0?'noshow':'confirmed'}">${when}</span></div>
    ${i.notice?`<p class="note" style="margin:8px 0 0">Último aviso: ${dmShort(parse(i.notice))}</p>`:''}
@@ -1267,6 +1272,7 @@ const I={
  step:(el,ev)=>{if(ev.type==='change'){db.settings.step=+el.value;save()}},
  sname:(el,ev)=>{db.settings.name=el.value.trim()||'Salón Spa Sutil by Clara';save()},
  sphone:el=>{db.settings.phone=el.value;save();const h=$('#wahint');if(h)h.textContent=waHint()},
+ sweb:el=>{db.settings.web=el.value.trim();save()},sinsta:el=>{db.settings.insta=el.value.trim();save()},
  scc:el=>{db.settings.cc=el.value.replace(/\D/g,'')||'507';save();const h=$('#wahint');if(h)h.textContent=waHint()},
  msorry:el=>{db.settings.msg.sorry=el.value;save()},
  mconfirm:el=>{db.settings.msg.confirm=el.value;save()},mmaint:el=>{db.settings.msg.maint=el.value;save()},
