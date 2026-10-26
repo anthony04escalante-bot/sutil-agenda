@@ -759,7 +759,7 @@ function fmtPhone(p){const d=waDigits(p);if(!d)return'';const cc=db.settings.cc;
 const waHint=()=>db.settings.phone?`Se muestra como ${fmtPhone(db.settings.phone)} en los mensajes.`:'Escribe el número de WhatsApp del salón.';
 function waLink(phone,msg){const d=waDigits(phone);return d?`https://wa.me/${d}?text=${encodeURIComponent(msg)}`:''}
 const fill=(t,v)=>String(t).replace(/\{(\w+)\}/g,(m,k)=>v[k]??m);
-function msgVars(c,s,a){const d=a?parse(a.date):null;return{nombre:c.name.split(' ')[0],servicio:s.name.toLowerCase(),salon:db.settings.name,whatsapp:fmtPhone(db.settings.phone),
+function msgVars(c,s,a){const d=a?parse(a.date):null;return{nombre:c.name.trim(),servicio:s.name.toLowerCase(),salon:db.settings.name,whatsapp:fmtPhone(db.settings.phone),
  fecha:d?`${wdLong(d).toLowerCase()} ${d.getDate()} de ${monthLong(d).toLowerCase()}`:'',hora:a?t12(a.start):''}}
 const bub=t=>esc(t).replace(/\*([^*\n]+)\*/g,'<b>$1</b>');
 const sig=()=>{const w=(db.settings.web||'').trim(),i=(db.settings.insta||'').trim();return (w||i)?'\n\n'+[w?'🌐 '+w:'',i?'📸 '+i:''].filter(Boolean).join('\n'):''};
@@ -1018,7 +1018,7 @@ function schedSheet(id){
  const s=svcById(a.serviceId),c=clientById(a.clientId),d=parse(a.date),wa=waLink(c.phone,confirmMsg(a));
  openSheet(`${head('Cita programada')}<div class="sh-body"><div class="okmark">${ic('check',30)}</div>
   <dl class="kv"><dt>Cliente</dt><dd>${esc(c.name)}</dd><dt>Servicio</dt><dd>${esc(s.name)}</dd><dt>Día</dt><dd>${wdLong(d)} ${d.getDate()} de ${monthLong(d).toLowerCase()}</dd><dt>Hora</dt><dd>${t12(a.start)}</dd>${+a.price?`<dt>Precio</dt><dd>${money(a.price)}</dd>`:''}</dl>
-  ${wa?`<p class="note" style="margin:0 0 8px">Avísale a ${esc(c.name.split(' ')[0])} por WhatsApp:</p><div class="bubble">${bub(confirmMsg(a))}</div>`:`<p class="note">${esc(c.name.split(' ')[0])} no tiene WhatsApp guardado. Agrégalo en Clientes para enviarle el mensaje.</p>`}</div>
+  ${wa?`<p class="note" style="margin:0 0 8px">Avísale a ${esc(c.name.trim())} por WhatsApp:</p><div class="bubble">${bub(confirmMsg(a))}</div>`:`<p class="note">${esc(c.name.split(' ')[0])} no tiene WhatsApp guardado. Agrégalo en Clientes para enviarle el mensaje.</p>`}</div>
   <div class="sh-foot">${wa?`<a class="btn wa" href="${wa}" target="_blank" rel="noopener" data-wa="confirm" data-id="${id}">${ic('chat',20)}Enviar WhatsApp</a>`:''}<button type="button" class="btn ghost" data-act="closeSheet">Listo</button></div>`);
 }
 function cobroSheet(id){
