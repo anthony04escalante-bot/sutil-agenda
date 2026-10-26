@@ -757,7 +757,7 @@ function waDigits(p){let d=String(p||'').replace(/\D/g,'');if(d.startsWith('00')
 const waOk=p=>{const d=waDigits(p);return d.length>=10&&d.length<=15};
 function fmtPhone(p){const d=waDigits(p);if(!d)return'';const cc=db.settings.cc;return d.startsWith(cc)&&d.length-cc.length===8?`+${cc} ${d.slice(cc.length,cc.length+4)}-${d.slice(cc.length+4)}`:'+'+d}
 const waHint=()=>db.settings.phone?`Se muestra como ${fmtPhone(db.settings.phone)} en los mensajes.`:'Escribe el número de WhatsApp del salón.';
-function waLink(phone,msg){const d=waDigits(phone);return d?`https://wa.me/${d}?text=${encodeURIComponent(msg)}`:''}
+function waLink(phone,msg){const d=waDigits(phone);if(!d)return'';const m=String(msg).normalize('NFC').replace(/[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/g,'');return `https://api.whatsapp.com/send?phone=${d}&text=${encodeURIComponent(m)}`}
 const fill=(t,v)=>String(t).replace(/\{(\w+)\}/g,(m,k)=>v[k]??m);
 function msgVars(c,s,a){const d=a?parse(a.date):null;return{nombre:c.name.trim(),servicio:s.name.toLowerCase(),salon:db.settings.name,whatsapp:fmtPhone(db.settings.phone),
  fecha:d?`${wdLong(d).toLowerCase()} ${d.getDate()} de ${monthLong(d).toLowerCase()}`:'',hora:a?t12(a.start):''}}
