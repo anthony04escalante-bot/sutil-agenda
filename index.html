@@ -668,7 +668,7 @@ DEFMSG.sorry='Hola {nombre}, soy Clara. Lamentablemente *no podré atenderle el 
 const OLDMSG={confirm:'Hola {nombre}, su cita fue programada para el día {fecha}, a las {hora}, para el servicio de {servicio}. Le esperamos en {salon}. ¡Gracias!',maint:'Hola {nombre}, te escribimos de {salon}. Ya es momento del mantenimiento de tu {servicio}. ¿Te agendamos una cita? Responde a este mensaje y te reservamos tu horario.'};
 const OWNER=()=>({id:'owner',name:'Clara',phone:'',active:true,services:[]});
 function baseDb(){
- return{v:5,demo:false,maint:{},settings:{off:[],name:'Salón Spa Sutil by Clara',phone:'60435416',cc:'507',web:'https://sutilbyclara.vercel.app',webInit:1,insta:'https://instagram.com/sutil_by_clara',blocks:[['09:00','13:00'],['14:00','18:00']],daysOpen:[1,2,3,4,5,6],step:30,msg:{...DEFMSG}},
+ return{v:5,demo:false,maint:{},settings:{off:[],name:'Salón Spa Sutil by Clara',phone:'60435416',cc:'507',web:'https://sutilbyclara.vercel.app',webInit:1,insta:'https://instagram.com/sutil_by_clara',blocks:[['08:00','21:00']],daysOpen:[1,2,3,4,5,6],step:30,msg:{...DEFMSG}},
   services:DEFAULT_SERVICES.map(([name,cat,dur,maint],i)=>({id:'s'+i,name,cat,dur,maint,active:true})),staff:[OWNER()],clients:[],appts:[]};
 }
 function buildDemo(){
@@ -697,6 +697,7 @@ function migrate(d){if((d.v||1)<2){d.v=1;d.services.forEach(s=>{delete s.price})
  if(d.v<5){const OLD='Hola {nombre}, te escribimos de {salon}. Tu cita de {servicio} es el {fecha} a las {hora}. ¿Nos confirmas tu asistencia? Responde SÍ para confirmar. ¡Gracias!';if(d.settings.msg&&d.settings.msg.confirm===OLD)d.settings.msg.confirm=DEFMSG.confirm;d.v=Math.min(d.v,4)}
  if(d.v<4){d.staff=[OWNER()];d.appts.forEach(a=>{a.staffId='owner'});d.settings.off=d.settings.off||[];d.v=4}
  if(d.settings.msg){if(!d.settings.msg.sorry||d.settings.msg.sorry.startsWith('Hola {nombre}, soy Clara de {salon}')||d.settings.msg.sorryMal||d.settings.msg.sorryComp||d.settings.msg.sorryImp){d.settings.msg.sorry=DEFMSG.sorry;delete d.settings.msg.sorryMal;delete d.settings.msg.sorryComp;delete d.settings.msg.sorryImp}if(d.settings.msg.confirm===OLDMSG.confirm)d.settings.msg.confirm=DEFMSG.confirm;if(d.settings.msg.maint===OLDMSG.maint)d.settings.msg.maint=DEFMSG.maint}
+ {const b=(d.settings.blocks||[]).filter(x=>x[0]&&x[1]);if(b.length!==1)d.settings.blocks=[[b.length&&toMin(b[0][0])<480?b[0][0]:'08:00',b.length&&toMin(b[b.length-1][1])>1260?b[b.length-1][1]:'21:00']]}
  d.v=5;if(!d.settings.phone)d.settings.phone='60435416';if(d.settings.insta==null)d.settings.insta='https://instagram.com/sutil_by_clara';if(!d.settings.webInit){if(!d.settings.web)d.settings.web='https://sutilbyclara.vercel.app';d.settings.webInit=1}
  return d}
 function load(){try{const r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);if(d&&Array.isArray(d.services)&&Array.isArray(d.appts))return migrate(d)}}catch(e){}return null}
@@ -717,7 +718,7 @@ const apptsOn=ds=>db.appts.filter(a=>a.date===ds).sort((a,b)=>a.start-b.start);
 const clash=(a0,a1,b0,b1)=>a0<b1&&b0<a1;
 const staffFree=(sid,ds,start,dur,ignore)=>!db.appts.some(a=>a.id!==ignore&&a.staffId===sid&&a.date===ds&&active(a.status)&&clash(start,start+dur,a.start,a.start+a.dur));
 const dayLoad=(sid,ds)=>db.appts.filter(a=>a.staffId===sid&&a.date===ds&&active(a.status)).length;
-function slotsFor(ds,svc,staffId,ignore,allowPast){
+function slotsFor(ds,svc,staffId,ignore,allowPast,extra){
  const out=[];if(!isOpenDay(ds))return out;
  if(!allowPast&&ds<todayStr())return out;
  const pool=[{id:'owner'}];
@@ -729,6 +730,10 @@ function slotsFor(ds,svc,staffId,ignore,allowPast){
    if(c2.length){free=true;pick=c2.sort((a,b)=>dayLoad(a.id,ds)-dayLoad(b.id,ds))[0].id}
   }
   out.push({start:t,free,staffId:pick});
+ }
+ if(extra!=null&&!out.some(s=>s.start===extra)){
+  const free=!(ds===todayStr()&&extra<=nm)&&staffFree('owner',ds,extra,svc.dur,ignore);
+  out.push({start:extra,free,staffId:free?'owner':null,custom:true});out.sort((a,b)=>a.start-b.start);
  }
  return out;
 }
@@ -896,11 +901,11 @@ function vSalon(){
   body=cats.map(c=>`<div class="sub">${esc(c)}</div><div class="rows">${db.services.filter(s=>s.cat===c).map(s=>`<button type="button" class="rw ${s.active?'':'off'}" data-act="svc" data-id="${s.id}"><i class="dot" style="background:${catColor(s.cat)}"></i><span style="min-width:0"><span class="t">${esc(s.name)}</span>${s.maint||!s.active?`<br><span class="s">${s.maint?`Mantenimiento cada ${s.maint} días`:''}${s.maint&&!s.active?' · ':''}${s.active?'':'Desactivado'}</span>`:''}</span><span class="r num">${durLabel(s.dur)}</span></button>`).join('')}</div>`).join('')
    +`<button type="button" class="btn tonal block" style="margin-top:16px" data-act="svcNew">${ic('plus',20)}Nuevo servicio</button><p class="note">Las duraciones son un punto de partida. Ajústalas a tu salón.</p>`;
  }else if(T==='horario'){
-  const s=db.settings,bl=[0,1].map(i=>s.blocks[i]||['','']);
+  const s=db.settings,bl=[s.blocks[0]||['08:00','21:00']];
   body=`<div class="sub">Días de apertura</div><div class="chips" style="flex-wrap:wrap;overflow:visible">${[1,2,3,4,5,6,0].map(d=>`<button type="button" class="chip" aria-pressed="${s.daysOpen.includes(d)}" data-act="dayTog" data-d="${d}">${['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'][d]}</button>`).join('')}</div>
-   ${['Mañana','Tarde'].map((n,i)=>`<div class="sub">${n}</div><div class="two"><div class="field"><label for="b${i}0">Abre</label><input class="in" id="b${i}0" type="time" value="${bl[i][0]}" data-in="blk" data-i="${i}" data-j="0"></div><div class="field"><label for="b${i}1">Cierra</label><input class="in" id="b${i}1" type="time" value="${bl[i][1]}" data-in="blk" data-i="${i}" data-j="1"></div></div>`).join('')}
+   <div class="sub">Horario de atención</div><div class="two"><div class="field"><label for="b00">Abre</label><input class="in" id="b00" type="time" value="${bl[0][0]}" data-in="blk" data-i="0" data-j="0"></div><div class="field"><label for="b01">Cierra</label><input class="in" id="b01" type="time" value="${bl[0][1]}" data-in="blk" data-i="0" data-j="1"></div></div>
    <div class="field"><label for="stp">Intervalo entre horarios</label><select class="in" id="stp" data-in="step">${[15,30,60].map(n=>`<option value="${n}" ${s.step===n?'selected':''}>${n} minutos</option>`).join('')}</select></div>
-   <p class="note">Deja vacío el bloque de la tarde si no cierras al mediodía.</p>`;
+   <p class="note">Las horas salen cada intervalo entre la apertura y el cierre. Al agendar también puedes escribir una hora exacta.</p>`;
  }else if(T==='whatsapp'){
   const s=db.settings,wa=waDigits(s.phone);
   body=`<div class="sub">Número de WhatsApp del salón</div>
@@ -979,13 +984,14 @@ function renderWiz(reset){
   body=`<p class="note" style="margin:0 0 8px">Cita para <b style="color:var(--ink)">${esc(nm)}</b></p>`+(cats.map(cat=>`<div class="sub" style="margin-top:6px">${esc(cat)}</div>${db.services.filter(s=>s.active&&s.cat===cat).map(s=>`<button type="button" class="opt ${w.serviceId===s.id?'on':''}" data-act="wSvc" data-id="${s.id}"><i class="dot" style="background:${catColor(s.cat)}"></i><span class="t">${esc(s.name)}</span><span class="r num">${durLabel(s.dur)}</span></button>`).join('')}`).join('')||`<div class="empty"><p>No hay servicios activos. Actívalos en Ajustes.</p></div>`);
   foot=`<button type="button" class="btn ghost" data-act="wBack">Atrás</button>`;
  }else{
-  const slots=slotsFor(w.date,svc,w.staffId,w.editId);
+  const slots=slotsFor(w.date,svc,w.staffId,w.editId,false,w.start);
   if(w.start!=null&&!slots.some(s=>s.start===w.start&&s.free))w.start=null;
   const ds=[];for(let i=0;i<28;i++)ds.push(ymd(addDays(new Date(),i)));if(!ds.includes(w.date))ds.unshift(w.date);
   body=`<p class="note" style="margin:0 0 10px"><b style="color:var(--ink)">${esc(nm)}</b> · ${esc(svc.name)} · ${durLabel(svc.dur)}</p>
    <div class="row" style="justify-content:space-between"><span class="lbl">Día</span><label class="lbl" style="display:flex;gap:8px;align-items:center">Otro día<input type="date" class="in" style="width:auto;min-height:40px;padding:4px 10px" id="wd" min="${todayStr()}" value="${w.date}" data-in="wDate"></label></div>
    <div class="dstrip">${ds.map(x=>{const d=parse(x);return `<button type="button" class="dchip ${x===w.date?'on':''}" data-act="wDay" data-d="${x}" ${isOpenDay(x)?'':'disabled'}><small>${wdShort(d)}</small>${d.getDate()}</button>`}).join('')}</div>
    <div class="sub" style="margin-top:8px">Hora</div>
+   ${isOpenDay(w.date)?`<div class="field" style="margin:0 0 10px"><label for="wt">Escribir una hora exacta</label><input type="time" class="in" id="wt" step="300" value="${w.start!=null?pad(Math.floor(w.start/60))+':'+pad(w.start%60):''}" data-in="wTime"></div>`:''}
    ${slots.length?`<div class="slots num">${slots.map(s=>`<button type="button" class="slot ${w.start===s.start?'on':''}" data-act="wSlot" data-s="${s.start}" ${s.free?'':'disabled'}>${t12(s.start)}</button>`).join('')}</div>`
    :`<div class="empty"><h3>${isOff(w.date)?'Día libre':isOpenDay(w.date)?'Sin horarios':'No trabajas este día'}</h3><p>Elige otro día.</p></div>`}
    ${w.start!=null?`<p class="note" style="margin-top:12px">Termina a las ${t12(w.start+svc.dur)}.</p>`:''}
@@ -1166,7 +1172,7 @@ const A={
    if(ex)cid=ex.id;else{cid=uid();fresh={id:cid,name,phone:w.newPhone.trim(),notes:''}}}
   const pr=String(w.price||'').trim().replace(',','.'),pv=pr===''?0:Number(pr);
   if(!isFinite(pv)||pv<0){err('Escribe un precio válido, por ejemplo 25 o 25.50.');return}
-  const slot=slotsFor(w.date,svc,w.staffId,w.editId).find(s=>s.start===w.start&&s.free);
+  const slot=slotsFor(w.date,svc,w.staffId,w.editId,false,w.start).find(s=>s.start===w.start&&s.free);
   if(!slot){err('Ese horario ya no está libre. Elige otro.');wizStep(3);return}
   if(fresh)db.clients.push(fresh);
   const rec={clientId:cid,serviceId:svc.id,staffId:slot.staffId,date:w.date,start:w.start,dur:svc.dur,notes:w.notes.trim(),price:pv||undefined};
@@ -1271,6 +1277,7 @@ Object.assign(A,{
 const I={
  dateIn:el=>{if(el.value){ui.date=el.value;render()}},
  cq:el=>{if(ui.q===el.value)return;ui.q=el.value;const l=$('#clist');if(l)l.innerHTML=clientRows()},
+ wTime:(el,ev)=>{if(ev.type!=='change')return;wiz.start=el.value?toMin(el.value):null;renderWiz()},
  wDate:el=>{if(el.value&&el.value>=todayStr()){wiz.date=el.value;wiz.start=null;renderWiz()}},
  wQ:el=>{if(wiz.q===el.value)return;wiz.q=el.value;const r=$('#wres');if(r)r.innerHTML=wizResults()},
  wName:el=>{wiz.q=el.value;wiz.newName=el.value;const r=$('#wsug');if(r)r.innerHTML=wizSug()},wPhone:el=>{wiz.newPhone=el.value},wNotes:el=>{wiz.notes=el.value},wPrice:el=>{wiz.price=el.value},
