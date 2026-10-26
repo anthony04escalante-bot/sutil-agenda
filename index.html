@@ -994,7 +994,6 @@ function renderWiz(reset){
    ${isOpenDay(w.date)?`<div class="field" style="margin:0 0 10px"><label for="wt">Escribir una hora exacta</label><input type="time" class="in" id="wt" step="300" value="${w.start!=null?pad(Math.floor(w.start/60))+':'+pad(w.start%60):''}" data-in="wTime"></div>`:''}
    ${slots.length?`<div class="slots num">${slots.map(s=>`<button type="button" class="slot ${w.start===s.start?'on':''}" data-act="wSlot" data-s="${s.start}" ${s.free?'':'disabled'}>${t12(s.start)}</button>`).join('')}</div>`
    :`<div class="empty"><h3>${isOff(w.date)?'Día libre':isOpenDay(w.date)?'Sin horarios':'No trabajas este día'}</h3><p>Elige otro día.</p></div>`}
-   ${w.start!=null?`<p class="note" style="margin-top:12px">Termina a las ${t12(w.start+svc.dur)}.</p>`:''}
    <div class="field" style="margin-top:14px"><label for="wp">Precio del servicio (opcional)</label><input class="in" id="wp" inputmode="decimal" placeholder="Ej. 25.00" value="${esc(w.price)}" data-in="wPrice" autocomplete="off"></div>
    <div class="field"><label for="wn">Nota (opcional)</label><textarea class="in" id="wn" data-in="wNotes" placeholder="Alergias, preferencias" style="min-height:64px">${esc(w.notes)}</textarea></div><p class="err" id="werr" role="alert"></p>`;
   foot=`${w.editId?'':`<button type="button" class="btn ghost" data-act="wBack">Atrás</button>`}<button type="button" class="btn" data-act="wOk" ${w.start==null?'disabled':''}>${w.editId?'Guardar cambios':'Programar cita'}</button>`;
@@ -1018,7 +1017,7 @@ function schedSheet(id){
  const a=db.appts.find(x=>x.id===id);if(!a)return;
  const s=svcById(a.serviceId),c=clientById(a.clientId),d=parse(a.date),wa=waLink(c.phone,confirmMsg(a));
  openSheet(`${head('Cita programada')}<div class="sh-body"><div class="okmark">${ic('check',30)}</div>
-  <dl class="kv"><dt>Cliente</dt><dd>${esc(c.name)}</dd><dt>Servicio</dt><dd>${esc(s.name)}</dd><dt>Día</dt><dd>${wdLong(d)} ${d.getDate()} de ${monthLong(d).toLowerCase()}</dd><dt>Hora</dt><dd>${t12(a.start)} a ${t12(a.start+a.dur)}</dd>${+a.price?`<dt>Precio</dt><dd>${money(a.price)}</dd>`:''}</dl>
+  <dl class="kv"><dt>Cliente</dt><dd>${esc(c.name)}</dd><dt>Servicio</dt><dd>${esc(s.name)}</dd><dt>Día</dt><dd>${wdLong(d)} ${d.getDate()} de ${monthLong(d).toLowerCase()}</dd><dt>Hora</dt><dd>${t12(a.start)}</dd>${+a.price?`<dt>Precio</dt><dd>${money(a.price)}</dd>`:''}</dl>
   ${wa?`<p class="note" style="margin:0 0 8px">Avísale a ${esc(c.name.split(' ')[0])} por WhatsApp:</p><div class="bubble">${bub(confirmMsg(a))}</div>`:`<p class="note">${esc(c.name.split(' ')[0])} no tiene WhatsApp guardado. Agrégalo en Clientes para enviarle el mensaje.</p>`}</div>
   <div class="sh-foot">${wa?`<a class="btn wa" href="${wa}" target="_blank" rel="noopener" data-wa="confirm" data-id="${id}">${ic('chat',20)}Enviar WhatsApp</a>`:''}<button type="button" class="btn ghost" data-act="closeSheet">Listo</button></div>`);
 }
@@ -1047,7 +1046,7 @@ function apptSheet(id,confirm){
   ${upcoming?`<button type="button" class="btn tonal block" data-act="sorry" data-id="${id}">Yo no puedo atender · avisar</button>`:''}</div>`;
  else if(a.status==='completed')acts=`<div class="acts"><button type="button" class="btn tonal block" data-act="cobro" data-id="${id}">${+a.amount?'Cobro: '+money(a.amount)+' · Editar':'Agregar cobro'}</button><button type="button" class="btn ghost block" data-act="reopen" data-id="${id}">Volver a “Por atender”</button>${delBtn}</div>`;
  else acts=`<div class="acts"><button type="button" class="btn ghost block" data-act="reopen" data-id="${id}">Volver a “Por atender”</button>${upcoming?reuseBtn:''}${delBtn}</div>`;
- openSheet(`${head(esc(s.name),`<span class="pill ${a.status}">${STATUS[a.status]}</span>${a.status==='confirmed'&&a.asked?` <span class="note">Mensaje enviado el ${dmShort(parse(a.asked))}</span>`:''}`)}<div class="sh-body"><dl class="kv"><dt>Cliente</dt><dd>${esc(c.name)}${c.phone?`<br><span class="note">${esc(c.phone)}</span>`:''}</dd><dt>Cuándo</dt><dd>${wdShort(d)} ${dmShort(d)}<br>${t12(a.start)} a ${t12(a.start+a.dur)}</dd>${+a.price&&a.status==='confirmed'?`<dt>Precio</dt><dd>${money(a.price)}</dd>`:''}${a.notes?`<dt>Notas</dt><dd>${esc(a.notes)}</dd>`:''}</dl>${acts}</div>`);
+ openSheet(`${head(esc(s.name),`<span class="pill ${a.status}">${STATUS[a.status]}</span>${a.status==='confirmed'&&a.asked?` <span class="note">Mensaje enviado el ${dmShort(parse(a.asked))}</span>`:''}`)}<div class="sh-body"><dl class="kv"><dt>Cliente</dt><dd>${esc(c.name)}${c.phone?`<br><span class="note">${esc(c.phone)}</span>`:''}</dd><dt>Cuándo</dt><dd>${wdShort(d)} ${dmShort(d)}<br>${t12(a.start)}</dd>${+a.price&&a.status==='confirmed'?`<dt>Precio</dt><dd>${money(a.price)}</dd>`:''}${a.notes?`<dt>Notas</dt><dd>${esc(a.notes)}</dd>`:''}</dl>${acts}</div>`);
 }
 
 /* cambiar el cliente de una cita */
